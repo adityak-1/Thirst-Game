@@ -21,7 +21,7 @@ void AFrogAditya::BeginPlay()
 void AFrogAditya::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	Jump();
 }
 
 // Called to bind functionality to input
