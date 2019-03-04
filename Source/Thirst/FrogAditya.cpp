@@ -7,6 +7,8 @@
 //http://api.unrealengine.com/INT/API/Runtime/Engine/Components/UInputComponent/BindAction/1/index.html
 //https://wiki.unrealengine.com/First_Person_Shooter_C%2B%2B_Tutorial
 //https://answers.unrealengine.com/questions/212373/character-rotation-problem-c.html
+//https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/UCharacterMovementComponent/index.html
+//https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/ACharacter/GetCharacterMovement/index.html
 
 #include "FrogAditya.h"
 #include "Components/InputComponent.h"
@@ -19,6 +21,23 @@ AFrogAditya::AFrogAditya()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	//scale the amount of gravity on player
+	GetCharacterMovement()->GravityScale = 1.5f;
+
+	//control scale of X-axis movement when falling
+	GetCharacterMovement()->AirControl = 0.7f;
+
+	//set the initial upward velocity when jumping
+	GetCharacterMovement()->JumpZVelocity = 700.f;
+	
+	//set default friction for surface that player walks on
+	GetCharacterMovement()->GroundFriction = 3.0f;
+
+	//set maximum walking speed for player
+	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+
+	//prevents player standing off the edge of platform due to CapsuleComponent
+	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
 }
 
 // Called when the game starts or when spawned
