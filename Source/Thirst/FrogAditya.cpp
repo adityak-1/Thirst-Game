@@ -10,11 +10,13 @@
 
 #include "FrogAditya.h"
 #include "Components/InputComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
 
 // Sets default values
 AFrogAditya::AFrogAditya()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -23,8 +25,6 @@ AFrogAditya::AFrogAditya()
 void AFrogAditya::BeginPlay()
 {
 	Super::BeginPlay();
-	isRight = false;
-	moveScale = 500;
 }
 
 // Called every frame
@@ -32,27 +32,17 @@ void AFrogAditya::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*float xVel = GetVelocity().X;
+	//get X-component of player velocity
+	float xVel = GetVelocity().X;
 
-	if (xVel < 0) {
-		isRight = false;
+	//compute rotation for player to face correct direction
+	float yawAngle = (xVel > 0.0f) ? 180.0f : 
+		((xVel < 0.0f) ? 0.0f : GetControlRotation().Yaw);
 
-		FRotator flip(0.0f, 180.0f, 0.0f);
-		SetActorRotation(flip);
-	} else if (xVel > 0) {
-		isRight = true;
-
-		FRotator flip(0.0f, 0.0f, 0.0f);
-		SetActorRotation(flip);
-	}*/
-
-	/*float xVel = GetVelocity().X;
-	bool flipSprite = (xVel < 0 && isRight) || (xVel > 0 && !isRight);
-
-	if (flipSprite) {
-		FRotator flip(0.0f, 180.0f, 0.0f);
-		SetActorRotation(flip);
-	}*/
+	//rotate player based on direction of motion
+	if (Controller != nullptr) {
+		Controller->SetControlRotation(FRotator(0.0f, yawAngle, 0.0f));
+	}
 }
 
 // Called to bind functionality to input
@@ -62,15 +52,12 @@ void AFrogAditya::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	//bind movement functions to input controls
 	PlayerInputComponent->BindAxis("LeftRight", this, &AFrogAditya::MoveLeftRight);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump); 
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 }
 
 void AFrogAditya::MoveLeftRight(float dir)
 {
-	if (dir != 0.0f) {
-		//dir = (isRight) ? dir : -dir;
-
-		AddMovementInput(GetActorForwardVector() * moveScale, dir);
-	}
+	//add motion to player in X-axis based on selected direction
+	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), dir);
 }

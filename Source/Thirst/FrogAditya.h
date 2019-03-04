@@ -3,11 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "PaperCharacter.h"
 #include "FrogAditya.generated.h"
 
+/**
+ *
+ */
 UCLASS()
-class THIRST_API AFrogAditya : public ACharacter
+class THIRST_API AFrogAditya : public APaperCharacter
 {
 	GENERATED_BODY()
 
@@ -28,8 +31,4 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-private:
-	bool isRight;
-	int moveScale;
 };
