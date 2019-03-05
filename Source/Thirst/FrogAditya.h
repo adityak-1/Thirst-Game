@@ -28,7 +28,17 @@ public:
 	UFUNCTION()
 		void MoveLeftRight(float val);
 
+	// functions to handle dash motion of player
+	UFUNCTION()
+		void Dash();
+	UFUNCTION()
+		void StopDashing();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+private:
+	bool isDash;
+	FTimerHandle delayHandle;
 };

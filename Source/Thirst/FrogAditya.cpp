@@ -9,23 +9,26 @@
 //https://answers.unrealengine.com/questions/212373/character-rotation-problem-c.html
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/UCharacterMovementComponent/index.html
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/ACharacter/GetCharacterMovement/index.html
+//https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/UNavMovementComponent/index.html
+//https://www.youtube.com/watch?v=xXG-fYzpSW4&index=8&list=PLZlv_N0_O1gYup-gvJtMsgJqnEB_dGiM4
 
 #include "FrogAditya.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include "TimerManager.h"
 
 // Sets default values
 AFrogAditya::AFrogAditya()
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	//set this character to call Tick() every frame
 	PrimaryActorTick.bCanEverTick = true;
 
 	//scale the amount of gravity on player
 	GetCharacterMovement()->GravityScale = 1.5f;
 
 	//control scale of X-axis movement when falling
-	GetCharacterMovement()->AirControl = 0.7f;
+	GetCharacterMovement()->AirControl = 0.3f;
 
 	//set the initial upward velocity when jumping
 	GetCharacterMovement()->JumpZVelocity = 700.f;
@@ -38,6 +41,8 @@ AFrogAditya::AFrogAditya()
 
 	//prevents player standing off the edge of platform due to CapsuleComponent
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
+
+	isDash = false;
 }
 
 // Called when the game starts or when spawned
@@ -73,10 +78,37 @@ void AFrogAditya::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("LeftRight", this, &AFrogAditya::MoveLeftRight);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AFrogAditya::Dash);
 }
 
 void AFrogAditya::MoveLeftRight(float dir)
 {
 	//add motion to player in X-axis based on selected direction
-	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), dir);
+	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), (isDash ? 0.0f : dir));
+}
+
+void AFrogAditya::Dash()
+{
+	//initialize movement for dash
+	GetCharacterMovement()->GravityScale = 0.0f;
+	GetCharacterMovement()->StopMovementImmediately();
+	isDash = true;
+
+	//compute dash direction
+	float dir = (GetControlRotation().Yaw == 0.0f) ? -1.0f : 1.0f;
+
+	//begin movement for dash
+	LaunchCharacter(FVector(2000.0f * dir, 0.0f, 0.0f), true, true);
+	
+	//wait for some time and stop dash
+	GetWorldTimerManager().SetTimer(delayHandle, this,
+		&AFrogAditya::StopDashing, 0.25f, false);
+}
+
+void AFrogAditya::StopDashing()
+{
+	//reset default player movements
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->GravityScale = 1.5f;
+	isDash = false;
 }
