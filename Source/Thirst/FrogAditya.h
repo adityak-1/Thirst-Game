@@ -39,6 +39,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	bool isDash;
+	bool isDash, dashAgain;
 	FTimerHandle delayHandle;
 };

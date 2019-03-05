@@ -28,7 +28,7 @@ AFrogAditya::AFrogAditya()
 	GetCharacterMovement()->GravityScale = 1.5f;
 
 	//control scale of X-axis movement when falling
-	GetCharacterMovement()->AirControl = 0.3f;
+	GetCharacterMovement()->AirControl = 0.7f;
 
 	//set the initial upward velocity when jumping
 	GetCharacterMovement()->JumpZVelocity = 700.f;
@@ -42,7 +42,9 @@ AFrogAditya::AFrogAditya()
 	//prevents player standing off the edge of platform due to CapsuleComponent
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
 
+	//initialize flags for player movements
 	isDash = false;
+	dashAgain = true;
 }
 
 // Called when the game starts or when spawned
@@ -67,6 +69,11 @@ void AFrogAditya::Tick(float DeltaTime)
 	if (Controller != nullptr) {
 		Controller->SetControlRotation(FRotator(0.0f, yawAngle, 0.0f));
 	}
+
+	//check whether player can dash again
+	if (GetCharacterMovement()->IsMovingOnGround()) {
+		dashAgain = true;
+	}
 }
 
 // Called to bind functionality to input
@@ -83,26 +90,35 @@ void AFrogAditya::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void AFrogAditya::MoveLeftRight(float dir)
 {
+	//disable left/right motion if performing dash
+	if (isDash)
+		return ;
+
 	//add motion to player in X-axis based on selected direction
-	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), (isDash ? 0.0f : dir));
+	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), dir);
 }
 
 void AFrogAditya::Dash()
 {
+	//disable multiple dashes while in the air
+	if (!dashAgain || isDash)
+		return ;
+
 	//initialize movement for dash
+	isDash = true;
+	dashAgain = false;
 	GetCharacterMovement()->GravityScale = 0.0f;
 	GetCharacterMovement()->StopMovementImmediately();
-	isDash = true;
 
 	//compute dash direction
 	float dir = (GetControlRotation().Yaw == 0.0f) ? -1.0f : 1.0f;
 
 	//begin movement for dash
-	LaunchCharacter(FVector(2000.0f * dir, 0.0f, 0.0f), true, true);
-	
+	LaunchCharacter(FVector(3000.0f * dir, 0.0f, 0.0f), true, true);
+
 	//wait for some time and stop dash
 	GetWorldTimerManager().SetTimer(delayHandle, this,
-		&AFrogAditya::StopDashing, 0.25f, false);
+		&AFrogAditya::StopDashing, 0.2f, false);
 }
 
 void AFrogAditya::StopDashing()
