@@ -38,6 +38,42 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//scale gravity on player
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float gravityScale;
+
+	//scale X-axis movement when falling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float airControl;
+
+	//initial upward velocity when jumping
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float jumpZVelocity;
+
+	//default friction for surface player walks on
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float groundFriction;
+
+	//maximum walking speed for player
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float maxWalkSpeed;
+
+	//launch velocity for dash
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float dashVel;
+
+	//duration of dash (in seconds)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float dashDuration;
+
+	//animation when player is idle
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* idleAnim;
+
+	//animation when player is walking
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* walkAnim;
+
 private:
 	bool isDash, dashAgain;
 	FTimerHandle delayHandle;

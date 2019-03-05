@@ -11,12 +11,14 @@
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/ACharacter/GetCharacterMovement/index.html
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/UNavMovementComponent/index.html
 //https://www.youtube.com/watch?v=xXG-fYzpSW4&index=8&list=PLZlv_N0_O1gYup-gvJtMsgJqnEB_dGiM4
+//UE4 Template: SideScroller2DCharacter.h, SideSchroller2DCharacter.cpp
 
 #include "FrogAditya.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "TimerManager.h"
+#include "PaperFlipbookComponent.h"
 
 // Sets default values
 AFrogAditya::AFrogAditya()
@@ -25,19 +27,19 @@ AFrogAditya::AFrogAditya()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//scale the amount of gravity on player
-	GetCharacterMovement()->GravityScale = 1.5f;
+	GetCharacterMovement()->GravityScale = gravityScale;
 
 	//control scale of X-axis movement when falling
-	GetCharacterMovement()->AirControl = 0.7f;
+	GetCharacterMovement()->AirControl = airControl;
 
 	//set the initial upward velocity when jumping
-	GetCharacterMovement()->JumpZVelocity = 700.f;
+	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
 	
 	//set default friction for surface that player walks on
-	GetCharacterMovement()->GroundFriction = 3.0f;
+	GetCharacterMovement()->GroundFriction = groundFriction;
 
 	//set maximum walking speed for player
-	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	GetCharacterMovement()->MaxWalkSpeed = maxWalkSpeed;
 
 	//prevents player standing off the edge of platform due to CapsuleComponent
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
@@ -73,6 +75,14 @@ void AFrogAditya::Tick(float DeltaTime)
 	//check whether player can dash again
 	if (GetCharacterMovement()->IsMovingOnGround()) {
 		dashAgain = true;
+	}
+
+	//set next animation state
+	UPaperFlipbook* currAnim = (xVel != 0.0f) ? walkAnim : idleAnim;
+
+	//update player animation if incorrect
+	if (GetSprite()->GetFlipbook() != currAnim) {
+		GetSprite()->SetFlipbook(currAnim);
 	}
 }
 
@@ -114,17 +124,17 @@ void AFrogAditya::Dash()
 	float dir = (GetControlRotation().Yaw == 0.0f) ? -1.0f : 1.0f;
 
 	//begin movement for dash
-	LaunchCharacter(FVector(3000.0f * dir, 0.0f, 0.0f), true, true);
+	LaunchCharacter(FVector(dashVel * dir, 0.0f, 0.0f), true, true);
 
 	//wait for some time and stop dash
 	GetWorldTimerManager().SetTimer(delayHandle, this,
-		&AFrogAditya::StopDashing, 0.2f, false);
+		&AFrogAditya::StopDashing, dashDuration, false);
 }
 
 void AFrogAditya::StopDashing()
 {
 	//reset default player movements
 	GetCharacterMovement()->StopMovementImmediately();
-	GetCharacterMovement()->GravityScale = 1.5f;
+	GetCharacterMovement()->GravityScale = gravityScale;
 	isDash = false;
 }
