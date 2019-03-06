@@ -60,8 +60,9 @@ void AFrogAditya::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//get X-component of player velocity
+	//get components of player velocity
 	float xVel = GetVelocity().X;
+	float zVel = GetVelocity().Z;
 
 	//compute rotation for player to face correct direction
 	float yawAngle = (xVel > 0.0f) ? 180.0f : 
@@ -78,7 +79,17 @@ void AFrogAditya::Tick(float DeltaTime)
 	}
 
 	//set next animation state
-	UPaperFlipbook* currAnim = (xVel != 0.0f) ? walkAnim : idleAnim;
+	UPaperFlipbook* currAnim;
+
+	if (isDash) {
+		currAnim = dashAnim;
+	}
+	else if (!GetCharacterMovement()->IsMovingOnGround()) {
+		currAnim = (zVel >= 0) ? jumpAnim : fallAnim;
+	}
+	else {
+		currAnim = (xVel != 0.0f) ? walkAnim : idleAnim;
+	}
 
 	//update player animation if incorrect
 	if (GetSprite()->GetFlipbook() != currAnim) {

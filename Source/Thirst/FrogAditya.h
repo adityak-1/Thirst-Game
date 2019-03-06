@@ -74,6 +74,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* walkAnim;
 
+	//animation when player is jumping (up)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* jumpAnim;
+
+	//animation when player is falling
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* fallAnim;
+
+	//animation when player is performing dash
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* dashAnim;
+
 private:
 	bool isDash, dashAgain;
 	FTimerHandle delayHandle;
