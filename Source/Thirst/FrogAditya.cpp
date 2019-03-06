@@ -65,8 +65,8 @@ void AFrogAditya::Tick(float DeltaTime)
 	float zVel = GetVelocity().Z;
 
 	//compute rotation for player to face correct direction
-	float yawAngle = (xVel > 0.0f) ? 180.0f : 
-		((xVel < 0.0f) ? 0.0f : GetControlRotation().Yaw);
+	float yawAngle = (xVel > 0.0f && !isBackstep) ? 180.0f : 
+		((xVel < 0.0f && !isBackstep) ? 0.0f : GetControlRotation().Yaw);
 
 	//rotate player based on direction of motion
 	if (Controller != nullptr) {
@@ -81,13 +81,22 @@ void AFrogAditya::Tick(float DeltaTime)
 	//set next animation state
 	UPaperFlipbook* currAnim;
 
+	//player is performing dash
 	if (isDash) {
 		currAnim = dashAnim;
 	}
+	//player is performing backstep
+	else if (isBackstep) {
+		currAnim = backstepAnim;
+	}
+	//player is in air
 	else if (!GetCharacterMovement()->IsMovingOnGround()) {
+		//can only do jump of fall
 		currAnim = (zVel >= 0) ? jumpAnim : fallAnim;
 	}
+	//player is on ground
 	else {
+		//can walk or stand idle
 		currAnim = (xVel != 0.0f) ? walkAnim : idleAnim;
 	}
 
@@ -107,6 +116,7 @@ void AFrogAditya::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AFrogAditya::Dash);
+	PlayerInputComponent->BindAction("Backstep", IE_Pressed, this, &AFrogAditya::Backstep);
 }
 
 void AFrogAditya::MoveLeftRight(float dir)
@@ -122,7 +132,8 @@ void AFrogAditya::MoveLeftRight(float dir)
 void AFrogAditya::Dash()
 {
 	//disable multiple dashes while in the air
-	if (!dashAgain || isDash)
+	//also disable if doing backstep
+	if (!dashAgain || isDash || isBackstep)
 		return ;
 
 	//initialize movement for dash
@@ -148,4 +159,35 @@ void AFrogAditya::StopDashing()
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->GravityScale = gravityScale;
 	isDash = false;
+}
+
+void AFrogAditya::Backstep()
+{
+	//do not allow overlapping backstep moves and only allow when grounded
+	//also disable if doing dash on ground
+	if (isBackstep || !GetCharacterMovement()->IsMovingOnGround() || isDash)
+		return;
+
+	//initialize movement for dash
+	isBackstep = true;
+	GetCharacterMovement()->JumpZVelocity = 0.0f;
+	GetCharacterMovement()->StopMovementImmediately();
+
+	//compute backstep direction
+	float dir = (GetControlRotation().Yaw == 0.0f) ? 1.0f : -1.0f;
+
+	//begin movement for backstep
+	LaunchCharacter(FVector(backstepVel * dir, 0.0f, 0.0f), true, true);
+
+	//wait for some time and stop backstep
+	GetWorldTimerManager().SetTimer(delayHandle, this,
+		&AFrogAditya::StopBackstep, backstepDuration, false);
+}
+
+void AFrogAditya::StopBackstep()
+{
+	//reset default player movements
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
+	isBackstep = false;
 }

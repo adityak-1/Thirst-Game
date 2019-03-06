@@ -34,6 +34,12 @@ public:
 	UFUNCTION()
 		void StopDashing();
 
+	// functions to handle backstep motion of player
+	UFUNCTION()
+		void Backstep();
+	UFUNCTION()
+		void StopBackstep();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -66,6 +72,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float dashDuration;
 
+	//launch velocity for backstep
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float backstepVel;
+
+	//duration of backstep (in seconds)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float backstepDuration;
+
 	//animation when player is idle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* idleAnim;
@@ -86,7 +100,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* dashAnim;
 
+	//animation when player is performing backstep
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* backstepAnim;
+
 private:
-	bool isDash, dashAgain;
+	bool isDash, dashAgain, isBackstep;
 	FTimerHandle delayHandle;
 };
