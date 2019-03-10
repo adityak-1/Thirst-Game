@@ -21,9 +21,18 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// functions to handle snake slither
+	// function to get displacement to player
+	UFUNCTION()
+		float GetPlayerDisp();
+
+	// function to handle snake slither
 	UFUNCTION()
 		void Slither();
+
+	// functions to handle snake lunge
+	UFUNCTION()
+		bool CanLunge();
+		void Lunge();
 
 protected:
 	// Called when the game starts or when spawned
@@ -37,6 +46,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float moveRadius;
 
+	//distance that snake can see ahead
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float visionDist;
+
 	//animation when player is slithering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* slitherAnim;
@@ -47,5 +60,6 @@ protected:
 
 private:
 	FVector center;
+	APawn* enemy;
 	bool isRight;
 };
