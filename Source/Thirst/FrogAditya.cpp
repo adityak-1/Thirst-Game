@@ -11,7 +11,7 @@
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/ACharacter/GetCharacterMovement/index.html
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/UNavMovementComponent/index.html
 //https://www.youtube.com/watch?v=xXG-fYzpSW4&index=8&list=PLZlv_N0_O1gYup-gvJtMsgJqnEB_dGiM4
-//UE4 Template: SideScroller2DCharacter.h, SideSchroller2DCharacter.cpp
+//UE4 Template: SideScroller2DCharacter.h, SideScroller2DCharacter.cpp
 
 #include "FrogAditya.h"
 #include "Components/InputComponent.h"
