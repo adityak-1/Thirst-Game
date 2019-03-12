@@ -19,6 +19,9 @@
 #include "GameFramework/Controller.h"
 #include "TimerManager.h"
 #include "PaperFlipbookComponent.h"
+#include "Runtime/Engine/Classes/Components/BoxComponent.h"
+#include "Snake.h"
+#include "Engine/World.h"
 
 // Sets default values
 AFrogAditya::AFrogAditya()
@@ -34,7 +37,7 @@ AFrogAditya::AFrogAditya()
 
 	//set the initial upward velocity when jumping
 	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
-	
+
 	//set default friction for surface that player walks on
 	GetCharacterMovement()->GroundFriction = groundFriction;
 
@@ -44,15 +47,24 @@ AFrogAditya::AFrogAditya()
 	//prevents player standing off the edge of platform due to CapsuleComponent
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
 
+	
+
 	//initialize flags for player movements
 	isDash = false;
 	dashAgain = true;
+	isMelee = false;
+	isRanged = false;
 }
 
 // Called when the game starts or when spawned
 void AFrogAditya::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//Delegate for handling Melee hits
+	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFrogAditya::MeleeHit);
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 // Called every frame
@@ -65,7 +77,7 @@ void AFrogAditya::Tick(float DeltaTime)
 	float zVel = GetVelocity().Z;
 
 	//compute rotation for player to face correct direction
-	float yawAngle = (xVel > 0.0f && !isBackstep) ? 180.0f : 
+	float yawAngle = (xVel > 0.0f && !isBackstep) ? 180.0f :
 		((xVel < 0.0f && !isBackstep) ? 0.0f : GetControlRotation().Yaw);
 
 	//rotate player based on direction of motion
@@ -81,8 +93,16 @@ void AFrogAditya::Tick(float DeltaTime)
 	//set next animation state
 	UPaperFlipbook* currAnim;
 
+	//player is performing melee attack
+	if (isMelee) {
+		currAnim = meleeAnim;
+	}
+	//player is performing ranged attack
+	else if (isRanged) {
+		currAnim = rangedAnim;
+	}
 	//player is performing dash
-	if (isDash) {
+	else if (isDash) {
 		currAnim = dashAnim;
 	}
 	//player is performing backstep
@@ -117,13 +137,15 @@ void AFrogAditya::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AFrogAditya::Dash);
 	PlayerInputComponent->BindAction("Backstep", IE_Pressed, this, &AFrogAditya::Backstep);
+	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AFrogAditya::Melee);
+	PlayerInputComponent->BindAction("Ranged", IE_Pressed, this, &AFrogAditya::Ranged);
 }
 
 void AFrogAditya::MoveLeftRight(float dir)
 {
-	//disable left/right motion if performing dash
-	if (isDash)
-		return ;
+	//disable left/right motion if performing dash or attack
+	if (isDash || isMelee || isRanged)
+		return;
 
 	//add motion to player in X-axis based on selected direction
 	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), dir);
@@ -132,9 +154,9 @@ void AFrogAditya::MoveLeftRight(float dir)
 void AFrogAditya::Dash()
 {
 	//disable multiple dashes while in the air
-	//also disable if doing backstep
-	if (!dashAgain || isDash || isBackstep)
-		return ;
+	//also disable if doing backstep or attack
+	if (!dashAgain || isDash || isBackstep || isMelee || isRanged)
+		return;
 
 	//initialize movement for dash
 	isDash = true;
@@ -164,8 +186,8 @@ void AFrogAditya::StopDashing()
 void AFrogAditya::Backstep()
 {
 	//do not allow overlapping backstep moves and only allow when grounded
-	//also disable if doing dash on ground
-	if (isBackstep || !GetCharacterMovement()->IsMovingOnGround() || isDash)
+	//also disable if doing dash on ground or attacking
+	if (isBackstep || !GetCharacterMovement()->IsMovingOnGround() || isDash || isMelee || isRanged)
 		return;
 
 	//initialize movement for dash
@@ -190,4 +212,96 @@ void AFrogAditya::StopBackstep()
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
 	isBackstep = false;
+}
+
+//beginning of melee cycle (startup)
+void AFrogAditya::Melee()
+{
+	//disable attacking while attacking (attack while dashing and backstepping still possible for now)
+	if (isMelee || isRanged)
+		return;
+
+	isMelee = true;
+
+	//TODO reduce water by meleeWater
+
+	//wait for some time, activate hitbox
+	GetWorldTimerManager().SetTimer(delayHandle, this,
+		&AFrogAditya::ActivateMelee, meleeStartup, false);
+}
+
+//second part of melee cycle (attack can hit)
+void AFrogAditya::ActivateMelee()
+{
+	//TODO activate melee hitbox
+	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
+	//ECollisionEnabled::Type Collision = ECollisionEnabled::QueryOnly;
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	//wait for some time, deactivate hitbox
+	GetWorldTimerManager().SetTimer(delayHandle, this,
+		&AFrogAditya::DeactivateMelee, meleeActivation, false);
+}
+
+//third part of melee cycle (attack can no longer hit)
+void AFrogAditya::DeactivateMelee()
+{
+	//deactivate melee hitbox
+	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
+	//ECollisionEnabled::Type Collision = ECollisionEnabled::NoCollision;
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	//wait for some time, end attack
+	GetWorldTimerManager().SetTimer(delayHandle, this,
+		&AFrogAditya::StopMelee, meleeEndlag, false);
+}
+
+//end of melee cycle (endlag is finished, player can move again)
+void AFrogAditya::StopMelee()
+{
+	isMelee = false;
+}
+
+//beginning of ranged cycle (startup)
+void AFrogAditya::Ranged()
+{
+	//disable attacking while attacking (attack while dashing and backstepping still possible for now)
+	if (isMelee || isRanged)
+		return;
+
+	isRanged = true;
+
+	//TODO reduce water by rangedWater
+
+	//wait for some time, spawn projectile
+	GetWorldTimerManager().SetTimer(delayHandle, this,
+		&AFrogAditya::ActivateRanged, rangedStartup, false);
+}
+
+//second part of ranged cycle (projectile spawns)
+void AFrogAditya::ActivateRanged()
+{
+	//TODO spawn projectile
+
+	//wait for some time, end animation
+	GetWorldTimerManager().SetTimer(delayHandle, this,
+		&AFrogAditya::StopRanged, rangedEndlag, false);
+}
+
+//end of ranged cycle (player can move again)
+void AFrogAditya::StopRanged()
+{
+	isRanged = false;
+}
+
+void AFrogAditya::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	//if other actor is enemy, call damage function
+	if (OtherActor->IsA<ASnake>() && !(OtherActor == this))
+	{
+		/*
+		AController* instigator = nullptr;	//doesn't matter for now
+		*/
+		Cast<ASnake>(OtherActor)->Damage(2);
+	}
 }

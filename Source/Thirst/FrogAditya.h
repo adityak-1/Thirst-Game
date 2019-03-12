@@ -40,6 +40,26 @@ public:
 	UFUNCTION()
 		void StopBackstep();
 
+	// functions to handle melee and ranged attacks
+	UFUNCTION()
+		void Melee();
+	UFUNCTION()
+		void ActivateMelee();
+	UFUNCTION()
+		void DeactivateMelee();
+	UFUNCTION()
+		void StopMelee();
+	UFUNCTION()
+		void Ranged();
+	UFUNCTION()
+		void ActivateRanged();
+	UFUNCTION()
+		void StopRanged();
+
+	//FComponentBeginOverlapSignature OnComponentOverlap;	TODO delete this?
+	UFUNCTION()
+		void MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -76,9 +96,33 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float backstepVel;
 
+	//projectile velocity for ranged
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float rangedVel;
+
 	//duration of backstep (in seconds)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float backstepDuration;
+
+	//duration of melee startup (in seconds)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float meleeStartup;
+
+	//duration melee hitbox is active (in seconds)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float meleeActivation;
+
+	//duration of melee ending (in seconds)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float meleeEndlag;
+
+	//duration of ranged startup (in seconds)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float rangedStartup;
+
+	//duration of ranged animation (in seconds)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float rangedEndlag;
 
 	//animation when player is idle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
@@ -104,7 +148,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* backstepAnim;
 
+	//animation when player is performing melee attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* meleeAnim;
+
+	//animation when player is performing ranged attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* rangedAnim;
+
 private:
-	bool isDash, dashAgain, isBackstep;
+	bool isDash, dashAgain, isBackstep, isMelee, isRanged;
+	int meleeDamage = 2;
+	int meleeWater = 1;
+	int rangedDamage = 1;
+	int rangedWater = 1;
 	FTimerHandle delayHandle;
 };

@@ -42,6 +42,11 @@ void ASnake::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//if hit points go to or below 0, destroy this actor
+	if (hitPoints <= 0) {
+		this->Destroy();
+	}
+
 	//get X component of snake velocity
 	float xVel = GetVelocity().X;
 
@@ -107,4 +112,9 @@ bool ASnake::CanLunge() {
 void ASnake::Lunge() {
 	//update snake to face snake (if incorrect)
 	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
+}
+
+//called when an attack hits the snake
+void ASnake::Damage(int damageTaken) {
+	hitPoints -= damageTaken;
 }
