@@ -7,7 +7,7 @@
 #include "Snake.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class THIRST_API ASnake : public APaperCharacter
@@ -32,7 +32,11 @@ public:
 	// functions to handle snake lunge
 	UFUNCTION()
 		bool CanLunge();
-		void Lunge();
+	void Lunge();
+
+	//function for snake to take damage
+	UFUNCTION()
+		void Damage(int damageTaken);
 
 protected:
 	// Called when the game starts or when spawned
@@ -57,6 +61,9 @@ protected:
 	//animation when player is lunging
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* lungeAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+		int hitPoints;
 
 private:
 	FVector center;
