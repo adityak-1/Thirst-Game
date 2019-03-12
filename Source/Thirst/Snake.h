@@ -32,7 +32,12 @@ public:
 	// functions to handle snake lunge
 	UFUNCTION()
 		bool CanLunge();
-	void Lunge();
+	UFUNCTION()
+		void Lunge();
+	UFUNCTION()
+		void StartLunge();
+	UFUNCTION()
+		void StopLunge(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	//function for snake to take damage
 	UFUNCTION()
@@ -69,4 +74,5 @@ private:
 	FVector center;
 	APawn* enemy;
 	bool isRight;
+	bool isLunge;
 };
