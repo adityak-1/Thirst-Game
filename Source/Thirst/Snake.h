@@ -59,6 +59,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float visionDist;
 
+	//time delay before lunge
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float lungeDelay;
+
+	//x-velocity of lunge
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float lungeXVel;
+
+	//z-velocity of lunge
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float lungeZVel;
+
+	//velocity of recoil after lunge
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float recoilVel;
+
 	//animation when player is slithering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* slitherAnim;
@@ -67,6 +83,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* lungeAnim;
 
+	//health of snake
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 		int hitPoints;
 

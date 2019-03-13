@@ -67,10 +67,14 @@ void ASnake::Tick(float DeltaTime)
 
 	//check if snake can start lunge
 	if (CanLunge()) {
+		//set lunge flag to true
+		isLunge = true;
+
 		Lunge();
 	}
 	//snake is not attacking player
 	else if(GetCharacterMovement()->IsMovingOnGround()) {
+		//reset lunge flag to false
 		isLunge = false;
 
 		Slither();
@@ -79,7 +83,7 @@ void ASnake::Tick(float DeltaTime)
 	//set next animation state
 	UPaperFlipbook* currAnim;
 
-	//set animation to slither
+	//update animation based on movement of snake
 	currAnim = isLunge ? lungeAnim : slitherAnim;
 
 	//update player animation if incorrect
@@ -120,9 +124,6 @@ bool ASnake::CanLunge() {
 }
 
 void ASnake::Lunge() {
-	//set lunge flag to true
-	isLunge = true;
-
 	//update snake to face snake (if incorrect)
 	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
 
@@ -132,12 +133,12 @@ void ASnake::Lunge() {
 	FTimerHandle delayHandle;
 	//wait for some time and start lunge
 	GetWorld()->GetTimerManager().SetTimer(delayHandle, this,
-		&ASnake::StartLunge, 0.5f, false);
+		&ASnake::StartLunge, lungeDelay, false);
 }
 
 void ASnake::StartLunge() {
 	//begin movement for lunge
-	LaunchCharacter(FVector(200 * (isRight ? 1.0f : -1.0f), 0.0f, 200.0f), true, true);
+	LaunchCharacter(FVector(lungeXVel * (isRight ? 1.0f : -1.0f), 0.0f, lungeZVel), true, true);
 }
 
 void ASnake::StopLunge(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
@@ -149,7 +150,7 @@ void ASnake::StopLunge(class UPrimitiveComponent* OverlappedComp, class AActor* 
 
 		//recoil backwards
 		GetCharacterMovement()->StopMovementImmediately();
-		LaunchCharacter(FVector(300 * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
+		LaunchCharacter(FVector(recoilVel * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
 
 		//set lunge flag to false
 		isLunge = false;
