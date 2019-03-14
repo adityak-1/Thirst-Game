@@ -20,6 +20,7 @@
 #include "TimerManager.h"
 #include "PaperFlipbookComponent.h"
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
+#include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "Snake.h"
 #include "Engine/World.h"
 
@@ -66,6 +67,9 @@ void AFrogAditya::BeginPlay()
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFrogAditya::MeleeHit);
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CollisionBox->SetVisibility(false);
+
+	//UCameraComponent* Camera = Cast<UCameraComponent>(GetDefaultSubobjectByName(TEXT("Camera")));
+
 }
 
 // Called every frame
@@ -78,8 +82,8 @@ void AFrogAditya::Tick(float DeltaTime)
 	float zVel = GetVelocity().Z;
 
 	//compute rotation for player to face correct direction
-	float yawAngle = (xVel > 0.0f && !isBackstep) ? 180.0f :
-		((xVel < 0.0f && !isBackstep) ? 0.0f : GetControlRotation().Yaw);
+	float yawAngle = (xVel > 0.0f && !isBackstep) ? 0.0f :
+		((xVel < 0.0f && !isBackstep) ? 180.0f : GetControlRotation().Yaw);
 
 	//rotate player based on direction of motion
 	if (Controller != nullptr) {
@@ -149,7 +153,7 @@ void AFrogAditya::MoveLeftRight(float dir)
 		return;
 
 	//add motion to player in X-axis based on selected direction
-	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), dir);
+	AddMovementInput(FVector(0.5f, 0.0f, 0.0f), dir);
 }
 
 void AFrogAditya::Dash()
@@ -166,13 +170,13 @@ void AFrogAditya::Dash()
 	GetCharacterMovement()->StopMovementImmediately();
 
 	//compute dash direction
-	float dir = (GetControlRotation().Yaw == 0.0f) ? -1.0f : 1.0f;
+	float dir = (GetControlRotation().Yaw == 180.0f) ? -1.0f : 1.0f;
 
 	//begin movement for dash
 	LaunchCharacter(FVector(dashVel * dir, 0.0f, 0.0f), true, true);
 
 	//wait for some time and stop dash
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(movementTimer, this,
 		&AFrogAditya::StopDashing, dashDuration, false);
 }
 
@@ -197,13 +201,13 @@ void AFrogAditya::Backstep()
 	GetCharacterMovement()->StopMovementImmediately();
 
 	//compute backstep direction
-	float dir = (GetControlRotation().Yaw == 0.0f) ? 1.0f : -1.0f;
+	float dir = (GetControlRotation().Yaw == 180.0f) ? 1.0f : -1.0f;
 
 	//begin movement for backstep
 	LaunchCharacter(FVector(backstepVel * dir, 0.0f, 0.0f), true, true);
 
 	//wait for some time and stop backstep
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(movementTimer, this,
 		&AFrogAditya::StopBackstep, backstepDuration, false);
 }
 
@@ -227,7 +231,7 @@ void AFrogAditya::Melee()
 	//TODO reduce water by meleeWater
 
 	//wait for some time, activate hitbox
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::ActivateMelee, meleeStartup, false);
 }
 
@@ -241,7 +245,7 @@ void AFrogAditya::ActivateMelee()
 	CollisionBox->SetVisibility(true);
 
 	//wait for some time, deactivate hitbox
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::DeactivateMelee, meleeActivation, false);
 }
 
@@ -255,7 +259,7 @@ void AFrogAditya::DeactivateMelee()
 	CollisionBox->SetVisibility(false);
 
 	//wait for some time, end attack
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::StopMelee, meleeEndlag, false);
 }
 
@@ -277,7 +281,7 @@ void AFrogAditya::Ranged()
 	//TODO reduce water by rangedWater
 
 	//wait for some time, spawn projectile
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::ActivateRanged, rangedStartup, false);
 }
 
@@ -287,7 +291,7 @@ void AFrogAditya::ActivateRanged()
 	//TODO spawn projectile
 
 	//wait for some time, end animation
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::StopRanged, rangedEndlag, false);
 }
 
