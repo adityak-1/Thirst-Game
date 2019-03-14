@@ -76,21 +76,8 @@ void AScarab::Tick(float DeltaTime)
 }
 
 void AScarab::Sliding() {
-	//determine moving direction
-	if (isHigh) {
-		if (isRight)
-			AddMovementInput(FVector(speedScale, 0.0f, 0.0f), 1.4f);
-		else
-			AddMovementInput(FVector(speedScale, 0.0f, 0.0f), -1.4f);
-	}
-	else {
-		if (isRight)
-			AddMovementInput(FVector(speedScale, 0.0f, speedScale), 1.4f);
-		else
-			AddMovementInput(FVector(speedScale, 0.0f, -speedScale), -1.4f);
-	}
 
-	//AddMovementInput(FVector(speedScale, 0.0f, speedScale), (isRight ? 1.0f : -1.0f));
+	AddMovementInput(FVector(speedScale, 0.0f, 0.0f), (isRight ? 1.0f : -1.0f));
 
 	//get current X position
 	float currX = GetCharacterMovement()->GetActorLocation().X;
@@ -98,19 +85,7 @@ void AScarab::Sliding() {
 	//get displacement from starting point
 	float dispX = currX - center.X;
 
-	//get current Z position
-	float currZ = GetCharacterMovement()->GetActorLocation().Z;
-
-	//get displacement from starting point
-	float dispZ = currZ - center.Z;
-
 	//constrain scarab movement to specified radius
-	if ((dispZ > moveHeight*2)|| (dispZ < 10.0f)) {
-		GetCharacterMovement()->StopMovementImmediately();
-		isHigh = !isHigh;
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("isHigh changed!"));
-	}
 
 	if ((isRight && dispX > moveRadius) || (!isRight && -dispX > moveRadius)) {
 		GetCharacterMovement()->StopMovementImmediately();
