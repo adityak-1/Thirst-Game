@@ -32,7 +32,12 @@ public:
 	// functions to handle snake lunge
 	UFUNCTION()
 		bool CanLunge();
-	void Lunge();
+	UFUNCTION()
+		void Lunge();
+	UFUNCTION()
+		void StartLunge();
+	UFUNCTION()
+		void StopLunge(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	//function for snake to take damage
 	UFUNCTION()
@@ -54,6 +59,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float visionDist;
 
+	//time delay before lunge
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float lungeDelay;
+
+	//x-velocity of lunge
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float lungeXVel;
+
+	//z-velocity of lunge
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float lungeZVel;
+
+	//velocity of recoil after lunge
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float recoilVel;
+
 	//animation when player is slithering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* slitherAnim;
@@ -62,6 +83,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* lungeAnim;
 
+	//health of snake
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 		int hitPoints;
 
@@ -69,4 +91,5 @@ private:
 	FVector center;
 	APawn* enemy;
 	bool isRight;
+	bool isLunge;
 };

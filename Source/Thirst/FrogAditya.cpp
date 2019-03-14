@@ -65,6 +65,7 @@ void AFrogAditya::BeginPlay()
 	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFrogAditya::MeleeHit);
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CollisionBox->SetVisibility(false);
 }
 
 // Called every frame
@@ -237,6 +238,7 @@ void AFrogAditya::ActivateMelee()
 	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
 	//ECollisionEnabled::Type Collision = ECollisionEnabled::QueryOnly;
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionBox->SetVisibility(true);
 
 	//wait for some time, deactivate hitbox
 	GetWorldTimerManager().SetTimer(delayHandle, this,
@@ -250,6 +252,7 @@ void AFrogAditya::DeactivateMelee()
 	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
 	//ECollisionEnabled::Type Collision = ECollisionEnabled::NoCollision;
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CollisionBox->SetVisibility(false);
 
 	//wait for some time, end attack
 	GetWorldTimerManager().SetTimer(delayHandle, this,

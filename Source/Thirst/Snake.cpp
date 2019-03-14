@@ -7,14 +7,17 @@
 //https://answers.unrealengine.com/questions/63322/how-to-get-the-player-controller-in-c.html
 //https://answers.unrealengine.com/questions/664426/ugameplaystatics-is-not-a-class-or-namespace-name.html
 //https://answers.unrealengine.com/questions/670373/pointer-to-incomplete-class-type-is-not-allowed-2.html
+//https://unrealcpp.com/on-overlap-begin/
 
 #include "Snake.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PaperFlipbookComponent.h"
 #include "Engine/GameEngine.h"
+#include "TimerManager.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 ASnake::ASnake()
@@ -22,7 +25,8 @@ ASnake::ASnake()
 	//set this character to call Tick() every frame
 	PrimaryActorTick.bCanEverTick = true;
 
-	isRight = true;
+	isRight = false;
+	isLunge = false;
 }
 
 // Called when the game starts or when spawned
@@ -35,6 +39,10 @@ void ASnake::BeginPlay()
 
 	//set snake to target player
 	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	//get the collision capsule on the snake
+	UCapsuleComponent* collisionCapsule = GetCapsuleComponent();
+	collisionCapsule->OnComponentBeginOverlap.AddDynamic(this, &ASnake::StopLunge);
 }
 
 // Called every frame
@@ -57,20 +65,26 @@ void ASnake::Tick(float DeltaTime)
 	//rotate player based on direction of motion
 	SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
 
-	//snake has detected player
+	//check if snake can start lunge
 	if (CanLunge()) {
+		//set lunge flag to true
+		isLunge = true;
+
 		Lunge();
 	}
-	//snake does not find player
-	else {
+	//snake is not attacking player
+	else if(GetCharacterMovement()->IsMovingOnGround()) {
+		//reset lunge flag to false
+		isLunge = false;
+
 		Slither();
 	}
 
 	//set next animation state
 	UPaperFlipbook* currAnim;
 
-	//set animation to slither
-	currAnim = slitherAnim;
+	//update animation based on movement of snake
+	currAnim = isLunge ? lungeAnim : slitherAnim;
 
 	//update player animation if incorrect
 	if (GetSprite()->GetFlipbook() != currAnim) {
@@ -99,19 +113,48 @@ float ASnake::GetPlayerDisp() {
 	//get current X position
 	float currX = GetCharacterMovement()->GetActorLocation().X;
 
-	return enemy->GetActorLocation().X - currX;
+	return currX - enemy->GetActorLocation().X;
 }
 
 bool ASnake::CanLunge() {
 	//get displacement to player
 	float disp = GetPlayerDisp();
 
-	return abs(disp) <= visionDist && (isRight != (disp < 0));
+	return !isLunge && GetCharacterMovement()->IsMovingOnGround() && abs(disp) <= visionDist && (isRight == (disp < 0));
 }
 
 void ASnake::Lunge() {
 	//update snake to face snake (if incorrect)
 	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
+
+	//stop snake slither movement
+	GetCharacterMovement()->StopMovementImmediately();
+
+	FTimerHandle delayHandle;
+	//wait for some time and start lunge
+	GetWorld()->GetTimerManager().SetTimer(delayHandle, this,
+		&ASnake::StartLunge, lungeDelay, false);
+}
+
+void ASnake::StartLunge() {
+	//begin movement for lunge
+	LaunchCharacter(FVector(lungeXVel * (isRight ? 1.0f : -1.0f), 0.0f, lungeZVel), true, true);
+}
+
+void ASnake::StopLunge(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	if (OtherActor == enemy) {
+		if (OtherComp->GetName() != "MeleeCollision") {
+			//decrease health
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, OtherComp->GetName());
+		}
+
+		//recoil backwards
+		GetCharacterMovement()->StopMovementImmediately();
+		LaunchCharacter(FVector(recoilVel * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
+
+		//set lunge flag to false
+		isLunge = false;
+	}
 }
 
 //called when an attack hits the snake
