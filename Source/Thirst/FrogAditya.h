@@ -162,5 +162,6 @@ private:
 	int meleeWater = 1;
 	int rangedDamage = 1;
 	int rangedWater = 1;
-	FTimerHandle delayHandle;
+	FTimerHandle movementTimer;
+	FTimerHandle attackTimer;
 };

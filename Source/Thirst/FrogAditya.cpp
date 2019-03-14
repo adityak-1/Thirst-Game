@@ -172,7 +172,7 @@ void AFrogAditya::Dash()
 	LaunchCharacter(FVector(dashVel * dir, 0.0f, 0.0f), true, true);
 
 	//wait for some time and stop dash
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(movementTimer, this,
 		&AFrogAditya::StopDashing, dashDuration, false);
 }
 
@@ -203,7 +203,7 @@ void AFrogAditya::Backstep()
 	LaunchCharacter(FVector(backstepVel * dir, 0.0f, 0.0f), true, true);
 
 	//wait for some time and stop backstep
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(movementTimer, this,
 		&AFrogAditya::StopBackstep, backstepDuration, false);
 }
 
@@ -227,7 +227,7 @@ void AFrogAditya::Melee()
 	//TODO reduce water by meleeWater
 
 	//wait for some time, activate hitbox
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::ActivateMelee, meleeStartup, false);
 }
 
@@ -241,7 +241,7 @@ void AFrogAditya::ActivateMelee()
 	CollisionBox->SetVisibility(true);
 
 	//wait for some time, deactivate hitbox
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::DeactivateMelee, meleeActivation, false);
 }
 
@@ -255,7 +255,7 @@ void AFrogAditya::DeactivateMelee()
 	CollisionBox->SetVisibility(false);
 
 	//wait for some time, end attack
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::StopMelee, meleeEndlag, false);
 }
 
@@ -277,7 +277,7 @@ void AFrogAditya::Ranged()
 	//TODO reduce water by rangedWater
 
 	//wait for some time, spawn projectile
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::ActivateRanged, rangedStartup, false);
 }
 
@@ -287,7 +287,7 @@ void AFrogAditya::ActivateRanged()
 	//TODO spawn projectile
 
 	//wait for some time, end animation
-	GetWorldTimerManager().SetTimer(delayHandle, this,
+	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrogAditya::StopRanged, rangedEndlag, false);
 }
 
