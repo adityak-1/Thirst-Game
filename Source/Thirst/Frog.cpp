@@ -11,6 +11,7 @@
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/ACharacter/GetCharacterMovement/index.html
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/UNavMovementComponent/index.html
 //https://www.youtube.com/watch?v=xXG-fYzpSW4&index=8&list=PLZlv_N0_O1gYup-gvJtMsgJqnEB_dGiM4
+//https://www.youtube.com/watch?time_continue=3&v=Z-mbe4k5Wa4
 //UE4 Template: SideScroller2DCharacter.h, SideScroller2DCharacter.cpp
 
 #include "Frog.h"
@@ -23,6 +24,7 @@
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "Snake.h"
 #include "Engine/World.h"
+#include "Projectile.h"
 
 // Sets default values
 AFrog::AFrog()
@@ -288,7 +290,15 @@ void AFrog::Ranged()
 //second part of ranged cycle (projectile spawns)
 void AFrog::ActivateRanged()
 {
-	//TODO spawn projectile
+	//initialize parameters for projectile spawn
+	FActorSpawnParameters params;
+	params.Owner = this;
+
+	//spawn projectile
+	AProjectile* waterBall = GetWorld()->SpawnActor<AProjectile>(projectile, GetActorLocation(), GetActorRotation(), params);
+	
+	//allow the projectile to move
+	waterBall->Start(this);
 
 	//wait for some time, end animation
 	GetWorldTimerManager().SetTimer(attackTimer, this,
