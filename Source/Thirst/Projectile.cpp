@@ -26,9 +26,19 @@ void AProjectile::BeginPlay()
 	SetActorHiddenInGame(true);
 }
 
-void AProjectile::Start(APawn *parent){
-	//correctly reset location of projectile (due to issue with spawn)
+void AProjectile::Start(APawn *owner){
+	//update the parent of the projectile
+	parent = owner;
+
+	//compute orientation of parent
+	bool isRight = (GetActorRotation().Yaw == 0.0f);
+
+	//update x-component of offset to account for rotation
+	offset.X = isRight ? offset.X : -offset.X;
+
+	//correctly reset location/rotation of projectile (due to issue with spawn)
 	SetActorLocation(parent->GetActorLocation() + offset);
+	SetActorRotation(parent->GetActorRotation());
 
 	//set the projectile to use move animation
 	GetSprite()->SetFlipbook(moveAnim);
@@ -46,8 +56,11 @@ void AProjectile::Start(APawn *parent){
 	//toggle gravity scale on projectile
 	GetCharacterMovement()->GravityScale = gravityScale;
 
+	//compute orientation scale for projectile
+	float moveScale = isRight ? 1.0f : -1.0f;
+
 	//add velocity to projectile
-	LaunchCharacter(FVector(xVel + parent->GetVelocity().X, 0.0f, 0.0f), true, true);
+	LaunchCharacter(FVector(xVelocity * moveScale, 0.0f, 0.0f), true, true);
 
 	//wait for some time, end animation
 	GetWorldTimerManager().SetTimer(movementTimer, this, &AProjectile::Stop, travelTime, false);
@@ -64,12 +77,8 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
 		collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		//get player
-		AActor *player = GetWorld()->GetFirstPlayerController()->GetPawn();
-
-		//check if damage should be done on collision
-		if ((OtherActor->GetName() == player->GetName()) != canDamagePlayer) {
-			//do damage to OtherActor
+		if (OtherActor != parent) {
+			//do damage to OtherActor (enemy could possibly attack another enemy)
 		}
 
 		Stop();

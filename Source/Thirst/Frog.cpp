@@ -50,8 +50,6 @@ AFrog::AFrog()
 	//prevents player standing off the edge of platform due to CapsuleComponent
 	GetCharacterMovement()->bUseFlatBaseForFloorChecks = true;
 
-
-
 	//initialize flags for player movements
 	isDash = false;
 	dashAgain = true;
@@ -69,9 +67,6 @@ void AFrog::BeginPlay()
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::MeleeHit);
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CollisionBox->SetVisibility(false);
-
-	//UCameraComponent* Camera = Cast<UCameraComponent>(GetDefaultSubobjectByName(TEXT("Camera")));
-
 }
 
 // Called every frame

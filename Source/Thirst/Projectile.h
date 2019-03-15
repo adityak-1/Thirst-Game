@@ -45,7 +45,7 @@ protected:
 
 	//x-velocity of projectile
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-		float xVel;
+		float xVelocity;
 
 	//toggle gravity scale on projectile
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -54,10 +54,6 @@ protected:
 	//time projectile can travel
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float travelTime;
-
-	//can projectile damage player
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-		bool canDamagePlayer;
 
 	//animation when projectile is moving
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
@@ -69,4 +65,5 @@ protected:
 
 private:
 	FTimerHandle movementTimer;
+	APawn* parent;
 };
