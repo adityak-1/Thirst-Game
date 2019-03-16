@@ -8,12 +8,12 @@
 //https://answers.unrealengine.com/questions/664426/ugameplaystatics-is-not-a-class-or-namespace-name.html
 //https://answers.unrealengine.com/questions/670373/pointer-to-incomplete-class-type-is-not-allowed-2.html
 //https://unrealcpp.com/on-overlap-begin/
+//https://answers.unrealengine.com/questions/163258/looping-and-non-looping-flipbooks.html
 
 #include "Snake.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PaperFlipbookComponent.h"
-#include "Engine/GameEngine.h"
 #include "TimerManager.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
@@ -26,8 +26,10 @@ ASnake::ASnake()
 	//set this character to call Tick() every frame
 	PrimaryActorTick.bCanEverTick = true;
 
+	//set default values for flags
 	isRight = false;
-	isLunge = false;
+	beginLunge = false;
+	endLunge = false;
 }
 
 // Called when the game starts or when spawned
@@ -43,7 +45,7 @@ void ASnake::BeginPlay()
 
 	//get the collision box on the snake
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &ASnake::StopLunge);
+	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &ASnake::Collide);
 }
 
 // Called every frame
@@ -59,37 +61,30 @@ void ASnake::Tick(float DeltaTime)
 	//get X component of snake velocity
 	float xVel = GetVelocity().X;
 
-	//compute rotation for snake to face correct direction
-	float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
-		GetControlRotation().Yaw);
+	//determine whether snake can slither
+	bool canSlither = !beginLunge && !endLunge;
 
-	//rotate player based on direction of motion
-	SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
-
-	//check if snake can start lunge
+	//check if snake can lunge at player
 	if (CanLunge()) {
-		//set lunge flag to true
-		isLunge = true;
-
+		//perform lunge
 		Lunge();
 	}
-	//snake is not attacking player
-	else if(GetCharacterMovement()->IsMovingOnGround()) {
-		//reset lunge flag to false
-		isLunge = false;
+	//slither if snake is not in middle of lunge
+	else if (canSlither) {
+		//compute rotation for snake to face correct direction
+		float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
+			GetControlRotation().Yaw);
 
+		//rotate player based on direction of motion
+		SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
+
+		//update animation to slither if not already as such
+		if (GetSprite()->GetFlipbook() != slitherAnim) {
+			GetSprite()->SetFlipbook(slitherAnim);
+		}
+
+		//perform slither
 		Slither();
-	}
-
-	//set next animation state
-	UPaperFlipbook* currAnim;
-
-	//update animation based on movement of snake
-	currAnim = isLunge ? lungeAnim : slitherAnim;
-
-	//update player animation if incorrect
-	if (GetSprite()->GetFlipbook() != currAnim) {
-		GetSprite()->SetFlipbook(currAnim);
 	}
 }
 
@@ -103,9 +98,12 @@ void ASnake::Slither() {
 	//get displacement from starting point
 	float disp = currX - center.X;
 
-	//constrain snake movement to specified radius
+	//bound snake movement within radius
 	if ((isRight && disp > moveRadius) || (!isRight && -disp > moveRadius)) {
+		//stop current movement
 		GetCharacterMovement()->StopMovementImmediately();
+
+		//flip snake direction
 		isRight = !isRight;
 	}
 }
@@ -114,6 +112,7 @@ float ASnake::GetPlayerDisp() {
 	//get current X position
 	float currX = GetCharacterMovement()->GetActorLocation().X;
 
+	//return displacement
 	return currX - enemy->GetActorLocation().X;
 }
 
@@ -121,42 +120,89 @@ bool ASnake::CanLunge() {
 	//get displacement to player
 	float disp = GetPlayerDisp();
 
-	return !isLunge && GetCharacterMovement()->IsMovingOnGround() && abs(disp) <= visionDist && (isRight == (disp < 0));
+	//return whether snake can perform lunge
+	return !beginLunge && !endLunge && GetCharacterMovement()->IsMovingOnGround() 
+		&& abs(disp) <= visionDist && (isRight == (disp < 0));
 }
 
 void ASnake::Lunge() {
+	//set lunge flag to true
+	beginLunge = true;
+
 	//update snake to face snake (if incorrect)
 	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
 
 	//stop snake slither movement
 	GetCharacterMovement()->StopMovementImmediately();
 
-	FTimerHandle delayHandle;
+	//only allow lunge animation once
+	GetSprite()->SetLooping(false);
+	GetSprite()->SetFlipbook(lungeAnim);
+
 	//wait for some time and start lunge
-	GetWorld()->GetTimerManager().SetTimer(delayHandle, this,
+	GetWorld()->GetTimerManager().SetTimer(startTimer, this,
 		&ASnake::StartLunge, lungeDelay, false);
 }
 
 void ASnake::StartLunge() {
 	//begin movement for lunge
 	LaunchCharacter(FVector(lungeXVel * (isRight ? 1.0f : -1.0f), 0.0f, lungeZVel), true, true);
+
+	//wait for some time and stop lunge
+	GetWorld()->GetTimerManager().SetTimer(endTimer, this,
+		&ASnake::StopLunge, lungeDelay, false);
 }
 
-void ASnake::StopLunge(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, OtherComp->GetName());
-	if (OtherActor != this) {
+void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	//check whether snake is lunging
+	if (OtherActor != this && beginLunge) {
+		//update lunge flags
+		endLunge = true;
+		beginLunge = false;
+
+		//disable timed ending of lunge
+		GetWorldTimerManager().ClearTimer(endTimer);
+
 		//check if player was hit
 		if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
 			Cast<AFrog>(OtherActor)->Damage(2);
 		}
 
-		//recoil backwards
-		GetCharacterMovement()->StopMovementImmediately();
-		LaunchCharacter(FVector(recoilVel * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
-
-		//set lunge flag to false
-		isLunge = false;
+		//allow snake to recoil
+		StopLunge();
 	}
+	//snake is not lunging
+	else {
+		//flip direction of snake
+		isRight = !isRight;
+	}
+}
+
+void ASnake::StopLunge() {
+	//update lunge flags
+	endLunge = true;
+	beginLunge = false;
+
+	//recoil backwards
+	GetCharacterMovement()->StopMovementImmediately();
+	LaunchCharacter(FVector(recoilVel * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
+
+	//wait for some time and reset lunge
+	GetWorld()->GetTimerManager().SetTimer(resetTimer, this,
+		&ASnake::ResetLunge, lungeDelay, false);
+}
+
+void ASnake::ResetLunge() {
+	//stop current movement
+	GetCharacterMovement()->StopMovementImmediately();
+
+	//reset snake to slither animation with looping
+	GetSprite()->SetLooping(true);
+	GetSprite()->Play();
+	GetSprite()->SetFlipbook(slitherAnim);
+
+	//clear lunge flags
+	endLunge = false;
 }
 
 //called when an attack hits the snake

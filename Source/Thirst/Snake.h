@@ -37,7 +37,11 @@ public:
 	UFUNCTION()
 		void StartLunge();
 	UFUNCTION()
-		void StopLunge(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+		void StopLunge();
+	UFUNCTION()
+		void ResetLunge();
+	UFUNCTION()
+		void Collide(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	//function for snake to take damage
 	UFUNCTION()
@@ -91,5 +95,9 @@ private:
 	FVector center;
 	APawn* enemy;
 	bool isRight;
-	bool isLunge;
+	bool beginLunge;
+	bool endLunge;
+	FTimerHandle startTimer;
+	FTimerHandle endTimer;
+	FTimerHandle resetTimer;
 };
