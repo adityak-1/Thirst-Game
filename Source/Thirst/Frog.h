@@ -56,7 +56,10 @@ public:
 	UFUNCTION()
 		void StopRanged();
 
-	//FComponentBeginOverlapSignature OnComponentOverlap;	TODO delete this?
+	//function for player to take damage
+	UFUNCTION()
+		void Damage(int damageTaken);
+
 	UFUNCTION()
 		void MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
@@ -166,6 +169,7 @@ private:
 	int meleeWater = 1;
 	int rangedDamage = 1;
 	int rangedWater = 1;
+	int hitPoints = 100;
 	FTimerHandle movementTimer;
 	FTimerHandle attackTimer;
 };

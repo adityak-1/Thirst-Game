@@ -317,3 +317,8 @@ void AFrog::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActo
 		Cast<ASnake>(OtherActor)->Damage(2);
 	}
 }
+
+//called when an attack hits the snake
+void AFrog::Damage(int damageTaken) {
+	hitPoints -= damageTaken;
+}

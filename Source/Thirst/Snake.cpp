@@ -17,7 +17,8 @@
 #include "TimerManager.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
+#include "Frog.h"
 
 // Sets default values
 ASnake::ASnake()
@@ -40,9 +41,9 @@ void ASnake::BeginPlay()
 	//set snake to target player
 	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
 
-	//get the collision capsule on the snake
-	UCapsuleComponent* collisionCapsule = GetCapsuleComponent();
-	collisionCapsule->OnComponentBeginOverlap.AddDynamic(this, &ASnake::StopLunge);
+	//get the collision box on the snake
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &ASnake::StopLunge);
 }
 
 // Called every frame
@@ -142,10 +143,11 @@ void ASnake::StartLunge() {
 }
 
 void ASnake::StopLunge(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	if (OtherActor == enemy) {
-		if (OtherComp->GetName() != "MeleeCollision") {
-			//decrease health
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, OtherComp->GetName());
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, OtherComp->GetName());
+	if (OtherActor != this) {
+		//check if player was hit
+		if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+			Cast<AFrog>(OtherActor)->Damage(2);
 		}
 
 		//recoil backwards

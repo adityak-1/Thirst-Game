@@ -10,6 +10,9 @@
 #include "TimerManager.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
+#include "Frog.h"
+#include "Snake.h"
+#include "Engine/GameEngine.h"
 
 // Sets default values
 AProjectile::AProjectile() {
@@ -79,6 +82,12 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 
 		if (OtherActor != parent) {
 			//do damage to OtherActor (enemy could possibly attack another enemy)
+			if (OtherActor->IsA<ASnake>()) {
+				Cast<ASnake>(OtherActor)->Damage(2);
+			}
+			else if(OtherActor->IsA<AFrog>()){
+				Cast<AFrog>(OtherActor)->Damage(2);
+			}
 		}
 
 		Stop();
@@ -88,6 +97,10 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 void AProjectile::Stop() {
 	//stop projectile movement
 	GetCharacterMovement()->StopMovementImmediately();
+
+	//disable collision box on projectile
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	//allow the collision animation to occur once
 	GetSprite()->SetLooping(false);
