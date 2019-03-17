@@ -21,7 +21,17 @@ public:
 
 	//function to handle start of projectile motion
 	UFUNCTION()
-		void Start(APawn *parent, bool isRight);
+		void Start(APawn *parent, bool isRight, bool canLaunch = true);
+	UFUNCTION()
+		void Launch(bool isRight);
+
+	//function to update projectile position
+	UFUNCTION()
+		void UpdatePosition(bool isRight);
+
+	//function to remove projectile from level
+	UFUNCTION()
+		void Remove();
 
 	//function to handle collision with objects
 	UFUNCTION()
@@ -34,10 +44,6 @@ protected:
 	//function to handle stopping of projectile motion
 	UFUNCTION()
 		void Stop();
-
-	//function to remove projectile from level
-	UFUNCTION()
-		void Remove();
 
 	//offset for launch
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -66,4 +72,5 @@ protected:
 private:
 	FTimerHandle movementTimer;
 	APawn* parent;
+	bool canDelete;
 };

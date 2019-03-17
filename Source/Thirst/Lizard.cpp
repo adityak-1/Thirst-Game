@@ -35,6 +35,14 @@ void ALizard::BeginPlay()
 
 	//set lizard to target player
 	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	//initialize parameters for projectile spear (if it exists)
+	FActorSpawnParameters params;
+	params.Owner = this;
+
+	//spawn projectile
+	spear = GetWorld()->SpawnActor<AProjectile>(spearProjectile, GetActorLocation(), GetActorRotation(), params);
+	spear->Start(this, isRight, false);
 }
 
 // Called every frame
@@ -44,7 +52,15 @@ void ALizard::Tick(float DeltaTime)
 
 	//if hit points go to or below 0, destroy this actor
 	if (hitPoints <= 0) {
+		if (spear) {
+			spear->Remove();
+		}
+
 		this->Destroy();
+	}
+
+	if (hasSpear && spear) {
+		spear->UpdatePosition(isRight);
 	}
 
 	//lizard can attack
@@ -119,7 +135,11 @@ void ALizard::Attack() {
 	GetCharacterMovement()->StopMovementImmediately();
 
 	//select attack to make
-	FunctionPtr ptr = &ALizard::Spit;
+	int randInt = 0;
+
+	FunctionPtr ptr = (randInt == 0) ? &ALizard::Spit :
+		(hasSpear ? &ALizard::Spear : 
+		(hasDagger ? &ALizard::Dagger : &ALizard::Spit));
 
 	//wait for some time and start attack
 	GetWorld()->GetTimerManager().SetTimer(startTimer, this,
@@ -136,6 +156,22 @@ void ALizard::Spit() {
 
 	//allow the projectile to move
 	waterBall->Start(this, isRight);
+
+	//wait for some time, end animation
+	GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::ResetAttack, resetDelay, false);
+}
+
+void ALizard::Spear() {
+	//select dash or throw
+
+	//wait for some time, end animation
+	GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::ResetAttack, resetDelay, false);
+}
+
+void ALizard::Dagger() {
+	//dash
 
 	//wait for some time, end animation
 	GetWorldTimerManager().SetTimer(resetTimer, this,

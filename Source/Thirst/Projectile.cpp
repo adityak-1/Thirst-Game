@@ -18,6 +18,9 @@
 AProjectile::AProjectile() {
 	//set initial gravity of projectile to 0
 	GetCharacterMovement()->GravityScale = 0.0f;
+
+	//set projectile delete to false
+	canDelete = false;
 }
 
 // Called when the game starts or when spawned
@@ -29,7 +32,7 @@ void AProjectile::BeginPlay()
 	SetActorHiddenInGame(true);
 }
 
-void AProjectile::Start(APawn *owner, bool isRight){
+void AProjectile::Start(APawn *owner, bool isRight, bool canLaunch){
 	//update the parent of the projectile
 	parent = owner;
 
@@ -37,14 +40,12 @@ void AProjectile::Start(APawn *owner, bool isRight){
 	offset.X = isRight ? offset.X : -offset.X;
 
 	//correctly reset location/rotation of projectile (due to issue with spawn)
-	SetActorLocation(parent->GetActorLocation() + offset);
-	SetActorRotation(FRotator(0.0f, isRight ? 0.0f : 180.0f, 0.0f));
+	UpdatePosition(isRight);
 
 	//set the projectile to use move animation
-	GetSprite()->SetFlipbook(moveAnim);
-
-	//make projectile visible again
-	SetActorHiddenInGame(false);
+	if (GetSprite()->GetFlipbook() != moveAnim) {
+		GetSprite()->SetFlipbook(moveAnim);
+	}
 
 	//delegate for handling collision
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
@@ -52,6 +53,26 @@ void AProjectile::Start(APawn *owner, bool isRight){
 
 	//delegate to handle removal of projectile
 	GetSprite()->OnFinishedPlaying.AddDynamic(this, &AProjectile::Remove);
+
+	if (canLaunch) {
+		Launch(isRight);
+	}
+}
+
+void AProjectile::UpdatePosition(bool isRight) {
+	//update location relative to parent
+	SetActorLocation(parent->GetActorLocation() + offset);
+
+	//update rotation relative to parent
+	SetActorRotation(FRotator(0.0f, isRight ? 0.0f : 180.0f, 0.0f));
+
+	//make projectile visible again
+	SetActorHiddenInGame(false);
+}
+
+void AProjectile::Launch(bool isRight) {
+	//set projectile delete to true
+	canDelete = true;
 
 	//toggle gravity scale on projectile
 	GetCharacterMovement()->GravityScale = gravityScale;
@@ -74,8 +95,10 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		GetWorldTimerManager().ClearTimer(movementTimer);
 
 		//disable collision box on projectile
-		UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-		collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (canDelete) {
+			UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+			collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 
 		if (OtherActor != parent) {
 			//do damage to OtherActor (enemy could possibly attack another enemy)
@@ -90,7 +113,9 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 			}
 		}
 
-		Stop();
+		if (canDelete) {
+			Stop();
+		}
 	}
 }
 

@@ -40,6 +40,10 @@ public:
 	UFUNCTION()
 		void Spit();
 	UFUNCTION()
+		void Spear();
+	UFUNCTION()
+		void Dagger();
+	UFUNCTION()
 		void ResetAttack();
 
 	//function for lizard to take damage
@@ -66,6 +70,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 		TSubclassOf<class AProjectile> projectile;
 
+	//projectile for spear attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		TSubclassOf<class AProjectile> spearProjectile;
+
+	//flag for whether lizard has dagger
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		bool hasDagger;
+	
+	//flag for whether lizard has spear
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		bool hasSpear;
+
 	//delay before lizard attacks
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float attackDelay;
@@ -85,6 +101,7 @@ protected:
 private:
 	FVector center;
 	APawn* enemy;
+	AProjectile* spear;
 	bool isRight;
 	bool isAttack;
 	FTimerHandle startTimer;
