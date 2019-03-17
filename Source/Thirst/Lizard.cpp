@@ -13,8 +13,10 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "Components/BoxComponent.h"
 #include "Projectile.h"
 #include "Frog.h"
+#include "Engine/GameEngine.h"
 
 // Sets default values
 ALizard::ALizard()
@@ -39,12 +41,19 @@ void ALizard::BeginPlay()
 	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
 
 	//initialize parameters for projectile spear (if it exists)
-	FActorSpawnParameters params;
-	params.Owner = this;
+	if (hasSpear) {
+		FActorSpawnParameters params;
+		params.Owner = this;
 
-	//spawn projectile
-	spear = GetWorld()->SpawnActor<AProjectile>(spearProjectile, GetActorLocation(), GetActorRotation(), params);
-	spear->Start(this, isRight, false);
+		//spawn projectile
+		spear = GetWorld()->SpawnActor<AProjectile>(spearProjectile, GetActorLocation(), GetActorRotation(), params);
+		spear->Start(this, isRight, false);
+	}
+
+	//initialize the dagger collision box on the lizard
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &ALizard::Collide);
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 // Called every frame
@@ -184,6 +193,10 @@ void ALizard::Spear() {
 }
 
 void ALizard::Dagger() {
+	//enable collision box for dagger
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
 	//dash with dagger
 	Dash();
 
@@ -207,28 +220,34 @@ void ALizard::Recoil() {
 }
 
 void ALizard::ResetAttack() {
+	//disable collision box for dagger
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	//reset attack flag to false
 	isAttack = false;
 }
 
 void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	//check whether lizard is attacking
-	if (OtherActor != this && isAttack) {
-		//disable timed ending of attack
-		GetWorldTimerManager().ClearTimer(resetTimer);
+	if (OtherActor != this) {
+		//check whether lizard is attacking
+		if (isAttack) {
+			//disable timed ending of attack
+			GetWorldTimerManager().ClearTimer(resetTimer);
 
-		//check if player was hit
-		if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-			Cast<AFrog>(OtherActor)->Damage(2);
+			//check if player was hit
+			if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+				Cast<AFrog>(OtherActor)->Damage(2);
+			}
+
+			//allow lizard to recoil
+			Recoil();
 		}
-
-		//allow lizard to recoil
-		Recoil();
-	}
-	//lizard is not attacking
-	else {
-		//flip direction of lizard
-		isRight = !isRight;
+		//lizard is not attacking
+		else {
+			//flip direction of lizard
+			isRight = !isRight;
+		}
 	}
 }
 

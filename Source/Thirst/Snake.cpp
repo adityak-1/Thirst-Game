@@ -154,27 +154,29 @@ void ASnake::StartLunge() {
 }
 
 void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	//check whether snake is lunging
-	if (OtherActor != this && beginLunge) {
-		//update lunge flags
-		endLunge = true;
-		beginLunge = false;
+	if (OtherActor != this) {
+		//check whether snake is lunging
+		if (beginLunge) {
+			//update lunge flags
+			endLunge = true;
+			beginLunge = false;
 
-		//disable timed ending of lunge
-		GetWorldTimerManager().ClearTimer(endTimer);
+			//disable timed ending of lunge
+			GetWorldTimerManager().ClearTimer(endTimer);
 
-		//check if player was hit
-		if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-			Cast<AFrog>(OtherActor)->Damage(2);
+			//check if player was hit
+			if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+				Cast<AFrog>(OtherActor)->Damage(2);
+			}
+
+			//allow snake to recoil
+			StopLunge();
 		}
-
-		//allow snake to recoil
-		StopLunge();
-	}
-	//snake is not lunging
-	else {
-		//flip direction of snake
-		isRight = !isRight;
+		//snake is not lunging
+		else {
+			//flip direction of snake
+			isRight = !isRight;
+		}
 	}
 }
 
