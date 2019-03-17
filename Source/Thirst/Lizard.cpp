@@ -58,8 +58,14 @@ void ALizard::Tick(float DeltaTime)
 		GetSprite()->SetFlipbook(walkAnim);
 	}
 
-	//perform slither
-	Walk();
+	//lizard can attack
+	if (CanAttack()) {
+		Attack();
+	}
+	//lizard not near player to attack
+	else {
+		Walk();
+	}
 }
 
 void ALizard::Walk() {
@@ -88,6 +94,22 @@ float ALizard::GetPlayerDisp() {
 
 	//return displacement
 	return currX - enemy->GetActorLocation().X;
+}
+
+bool ALizard::CanAttack() {
+	//get displacement to player
+	float disp = GetPlayerDisp();
+
+	//return whether lizard can perform attack
+	return abs(disp) <= visionDist && (isRight == (disp < 0));
+}
+
+void ALizard::Attack() {
+	//update lizard to face player (if incorrect)
+	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
+
+	//stop lizard walk movement
+	GetCharacterMovement()->StopMovementImmediately();
 }
 
 //called when an attack hits the lizard

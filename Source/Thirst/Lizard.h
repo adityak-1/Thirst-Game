@@ -29,6 +29,12 @@ public:
 	UFUNCTION()
 		void Walk();
 
+	//functions to handle lizard attack
+	UFUNCTION()
+		bool CanAttack();
+	UFUNCTION()
+		void Attack();
+
 	//function for lizard to take damage
 	UFUNCTION()
 		void Damage(int damageTaken);
