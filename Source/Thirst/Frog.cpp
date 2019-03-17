@@ -23,6 +23,7 @@
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "Snake.h"
+#include "Lizard.h"
 #include "Engine/World.h"
 #include "Projectile.h"
 
@@ -309,12 +310,14 @@ void AFrog::StopRanged()
 void AFrog::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	//if other actor is enemy, call damage function
-	if (OtherActor->IsA<ASnake>() && !(OtherActor == this))
-	{
-		/*
-		AController* instigator = nullptr;	//doesn't matter for now
-		*/
-		Cast<ASnake>(OtherActor)->Damage(2);
+	if (OtherActor != this) {
+		//do damage to OtherActor (enemy could possibly attack another enemy)
+		if (OtherActor->IsA<ASnake>()) {
+			Cast<ASnake>(OtherActor)->Damage(2);
+		}
+		else if (OtherActor->IsA<ALizard>()) {
+			Cast<ALizard>(OtherActor)->Damage(2);
+		}
 	}
 }
 

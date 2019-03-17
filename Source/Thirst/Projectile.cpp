@@ -12,7 +12,7 @@
 #include "Engine/World.h"
 #include "Frog.h"
 #include "Snake.h"
-#include "Engine/GameEngine.h"
+#include "Lizard.h"
 
 // Sets default values
 AProjectile::AProjectile() {
@@ -81,6 +81,9 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 			//do damage to OtherActor (enemy could possibly attack another enemy)
 			if (OtherActor->IsA<ASnake>()) {
 				Cast<ASnake>(OtherActor)->Damage(2);
+			}
+			else if (OtherActor->IsA<ALizard>()) {
+				Cast<ALizard>(OtherActor)->Damage(2);
 			}
 			else if(OtherActor->IsA<AFrog>()){
 				Cast<AFrog>(OtherActor)->Damage(2);
