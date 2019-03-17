@@ -174,7 +174,8 @@ void ALizard::Spear() {
 	}
 	//throw spear
 	else {
-
+		hasSpear = false;
+		spear->Launch(isRight);
 	}
 
 	//wait for some time, end animation
