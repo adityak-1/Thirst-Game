@@ -89,7 +89,7 @@ void AProjectile::Launch(bool isRight) {
 
 void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
 	//if other actor is enemy, call damage function
-	if (OtherActor != this)
+	if (OtherActor != this && !OtherActor->IsA<AProjectile>())
 	{
 		//disable timed removal of projectile
 		GetWorldTimerManager().ClearTimer(movementTimer);
@@ -115,6 +115,12 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 
 		if (canDelete) {
 			Stop();
+		}
+		else {
+			//lizard's spear collided with player
+			if (OtherActor->IsA<AFrog>() && parent->IsA<ALizard>()) {
+				Cast<ALizard>(parent)->Recoil();
+			}
 		}
 	}
 }

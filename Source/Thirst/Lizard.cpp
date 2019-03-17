@@ -5,6 +5,7 @@
 //
 //References:
 //https://wiki.unrealengine.com/Function_Pointers
+//http://api.unrealengine.com/INT/API/Runtime/Core/Math/FMath/RandRange/index.html
 
 #include "Lizard.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -13,6 +14,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "Projectile.h"
+#include "Frog.h"
 
 // Sets default values
 ALizard::ALizard()
@@ -135,7 +137,7 @@ void ALizard::Attack() {
 	GetCharacterMovement()->StopMovementImmediately();
 
 	//select attack to make
-	int randInt = 0;
+	int randInt = FMath::RandRange(0, 1);
 
 	FunctionPtr ptr = (randInt == 0) ? &ALizard::Spit :
 		(hasSpear ? &ALizard::Spear : 
@@ -164,14 +166,39 @@ void ALizard::Spit() {
 
 void ALizard::Spear() {
 	//select dash or throw
+	int randInt = FMath::RandRange(0, 1);
+
+	//dash with spear
+	if (randInt == 0) {
+		Dash();
+	}
+	//throw spear
+	else {
+
+	}
 
 	//wait for some time, end animation
 	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::ResetAttack, resetDelay, false);
+		&ALizard::ResetAttack, (randInt == 0 ? dashTime : resetDelay), false);
 }
 
 void ALizard::Dagger() {
-	//dash
+	//dash with dagger
+	Dash();
+
+	//wait for some time, end animation
+	GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::ResetAttack, dashTime, false);
+}
+
+void ALizard::Dash() {
+	//begin movement for dash
+	LaunchCharacter(FVector(dashVel * (isRight ? 1.0f : -1.0f), 0.0f, 0.0f), true, true);
+}
+
+void ALizard::Recoil() {
+	//begin movement for recoil
+	LaunchCharacter(FVector(recoilVel * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
 
 	//wait for some time, end animation
 	GetWorldTimerManager().SetTimer(resetTimer, this,
@@ -181,6 +208,27 @@ void ALizard::Dagger() {
 void ALizard::ResetAttack() {
 	//reset attack flag to false
 	isAttack = false;
+}
+
+void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	//check whether lizard is attacking
+	if (OtherActor != this && isAttack) {
+		//disable timed ending of attack
+		GetWorldTimerManager().ClearTimer(resetTimer);
+
+		//check if player was hit
+		if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+			Cast<AFrog>(OtherActor)->Damage(2);
+		}
+
+		//allow lizard to recoil
+		Recoil();
+	}
+	//lizard is not attacking
+	else {
+		//flip direction of lizard
+		isRight = !isRight;
+	}
 }
 
 //called when an attack hits the lizard

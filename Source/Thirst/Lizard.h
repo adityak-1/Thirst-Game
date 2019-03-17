@@ -44,7 +44,13 @@ public:
 	UFUNCTION()
 		void Dagger();
 	UFUNCTION()
+		void Dash();
+	UFUNCTION()
+		void Recoil();
+	UFUNCTION()
 		void ResetAttack();
+	UFUNCTION()
+		void Collide(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	//function for lizard to take damage
 	UFUNCTION()
@@ -65,6 +71,14 @@ protected:
 	//distance that lizard can see ahead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float visionDist;
+
+	//lizard dash velocity
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float dashVel;
+
+	//lizard recoil velocity
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float recoilVel;
 
 	//projectile for spit attack
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
@@ -89,6 +103,10 @@ protected:
 	//delay to reset attack
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float resetDelay;
+
+	//time for lizard dash
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float dashTime;
 
 	//animation when player is walking
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
