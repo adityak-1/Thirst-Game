@@ -293,7 +293,7 @@ void AFrog::ActivateRanged()
 	AProjectile* waterBall = GetWorld()->SpawnActor<AProjectile>(projectile, GetActorLocation(), GetActorRotation(), params);
 	
 	//allow the projectile to move
-	waterBall->Start(this);
+	waterBall->Start(this, GetActorRotation().Yaw == 0.0f);
 
 	//wait for some time, end animation
 	GetWorldTimerManager().SetTimer(attackTimer, this,

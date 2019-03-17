@@ -4,12 +4,15 @@
 //This file contains the AI functionality for the lizard enemy.
 //
 //References:
+//https://wiki.unrealengine.com/Function_Pointers
 
 #include "Lizard.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PaperFlipbookComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
+#include "TimerManager.h"
+#include "Projectile.h"
 
 // Sets default values
 ALizard::ALizard()
@@ -19,6 +22,7 @@ ALizard::ALizard()
 
 	//set default values for flags
 	isRight = false;
+	isAttack = false;
 }
 
 // Called when the game starts or when spawned
@@ -43,27 +47,27 @@ void ALizard::Tick(float DeltaTime)
 		this->Destroy();
 	}
 
-	//get X component of lizard velocity
-	float xVel = GetVelocity().X;
-
-	//compute rotation for lizard to face correct direction
-	float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
-		GetControlRotation().Yaw);
-
-	//rotate player based on direction of motion
-	SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
-
-	//update animation to walk if not already as such
-	if (GetSprite()->GetFlipbook() != walkAnim) {
-		GetSprite()->SetFlipbook(walkAnim);
-	}
-
 	//lizard can attack
 	if (CanAttack()) {
 		Attack();
 	}
 	//lizard not near player to attack
-	else {
+	else if (!isAttack) {
+		//get X component of lizard velocity
+		float xVel = GetVelocity().X;
+
+		//compute rotation for lizard to face correct direction
+		float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
+			GetControlRotation().Yaw);
+
+		//rotate player based on direction of motion
+		SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
+
+		//update animation to walk if not already as such
+		if (GetSprite()->GetFlipbook() != walkAnim) {
+			GetSprite()->SetFlipbook(walkAnim);
+		}
+
 		Walk();
 	}
 }
@@ -101,15 +105,46 @@ bool ALizard::CanAttack() {
 	float disp = GetPlayerDisp();
 
 	//return whether lizard can perform attack
-	return abs(disp) <= visionDist && (isRight == (disp < 0));
+	return !isAttack && abs(disp) <= visionDist && (isRight == (disp < 0));
 }
 
 void ALizard::Attack() {
+	//update attack flag to true
+	isAttack = true;
+
 	//update lizard to face player (if incorrect)
 	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
 
 	//stop lizard walk movement
 	GetCharacterMovement()->StopMovementImmediately();
+
+	//select attack to make
+	FunctionPtr ptr = &ALizard::Spit;
+
+	//wait for some time and start attack
+	GetWorld()->GetTimerManager().SetTimer(startTimer, this,
+		ptr, attackDelay, false);
+}
+
+void ALizard::Spit() {
+	//initialize parameters for projectile spawn
+	FActorSpawnParameters params;
+	params.Owner = this;
+
+	//spawn projectile
+	AProjectile* waterBall = GetWorld()->SpawnActor<AProjectile>(projectile, GetActorLocation(), GetActorRotation(), params);
+
+	//allow the projectile to move
+	waterBall->Start(this, isRight);
+
+	//wait for some time, end animation
+	GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::ResetAttack, resetDelay, false);
+}
+
+void ALizard::ResetAttack() {
+	//reset attack flag to false
+	isAttack = false;
 }
 
 //called when an attack hits the lizard

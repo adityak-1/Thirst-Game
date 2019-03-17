@@ -15,6 +15,9 @@ class THIRST_API ALizard : public APaperCharacter
 	GENERATED_BODY()
 
 public:
+	//function pointer typedef
+	typedef void (ALizard::*FunctionPtr)(void);
+
 	// Sets default values for this character's properties
 	ALizard();
 
@@ -34,6 +37,10 @@ public:
 		bool CanAttack();
 	UFUNCTION()
 		void Attack();
+	UFUNCTION()
+		void Spit();
+	UFUNCTION()
+		void ResetAttack();
 
 	//function for lizard to take damage
 	UFUNCTION()
@@ -55,6 +62,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float visionDist;
 
+	//projectile for spit attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		TSubclassOf<class AProjectile> projectile;
+
+	//delay before lizard attacks
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float attackDelay;
+
+	//delay to reset attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float resetDelay;
+
 	//animation when player is walking
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* walkAnim;
@@ -67,4 +86,7 @@ private:
 	FVector center;
 	APawn* enemy;
 	bool isRight;
+	bool isAttack;
+	FTimerHandle startTimer;
+	FTimerHandle resetTimer;
 };

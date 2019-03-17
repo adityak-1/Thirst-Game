@@ -29,19 +29,16 @@ void AProjectile::BeginPlay()
 	SetActorHiddenInGame(true);
 }
 
-void AProjectile::Start(APawn *owner){
+void AProjectile::Start(APawn *owner, bool isRight){
 	//update the parent of the projectile
 	parent = owner;
-
-	//compute orientation of parent
-	bool isRight = (GetActorRotation().Yaw == 0.0f);
 
 	//update x-component of offset to account for rotation
 	offset.X = isRight ? offset.X : -offset.X;
 
 	//correctly reset location/rotation of projectile (due to issue with spawn)
 	SetActorLocation(parent->GetActorLocation() + offset);
-	SetActorRotation(parent->GetActorRotation());
+	SetActorRotation(FRotator(0.0f, isRight ? 0.0f : 180.0f, 0.0f));
 
 	//set the projectile to use move animation
 	GetSprite()->SetFlipbook(moveAnim);
