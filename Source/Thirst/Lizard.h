@@ -108,9 +108,49 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float dashTime;
 
-	//animation when player is walking
+	//animation when lizard is idle
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* idleAnim;
+
+	//animation when lizard is idle with dagger
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* idleDaggerAnim;
+
+	//animation when lizard is idle with spear
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* idleSpearAnim;
+
+	//animation when lizard is walking
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* walkAnim;
+
+	//animation when lizard is walking with dagger
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* walkDaggerAnim;
+
+	//animation when lizard is walking with spear
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* walkSpearAnim;
+
+	//animation when lizard is dashing with dagger
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* dashDaggerAnim;
+
+	//animation when lizard is dashing with spear
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* dashSpearAnim;
+
+	//animation when lizard is recoiling with dagger
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* recoilDaggerAnim;
+
+	//animation when lizard is recoiling with spear
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* recoilSpearAnim;
+
+	//animation when lizard throws spear
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* throwAnim;
 
 	//health of lizard
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")

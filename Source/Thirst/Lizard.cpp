@@ -40,6 +40,16 @@ void ALizard::BeginPlay()
 	//set lizard to target player
 	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
 
+	//initialize the dagger collision box on the lizard
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &ALizard::Collide);
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	//update animation if lizard has dagger
+	if (hasDagger) {
+		GetSprite()->SetFlipbook(walkDaggerAnim);
+	}
+
 	//initialize parameters for projectile spear (if it exists)
 	if (hasSpear) {
 		FActorSpawnParameters params;
@@ -48,12 +58,10 @@ void ALizard::BeginPlay()
 		//spawn projectile
 		spear = GetWorld()->SpawnActor<AProjectile>(spearProjectile, GetActorLocation(), GetActorRotation(), params);
 		spear->Start(this, isRight, false);
-	}
 
-	//initialize the dagger collision box on the lizard
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &ALizard::Collide);
-	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//update animation if lizard has spear
+		GetSprite()->SetFlipbook(walkSpearAnim);
+	}
 }
 
 // Called every frame
@@ -74,15 +82,15 @@ void ALizard::Tick(float DeltaTime)
 		spear->UpdatePosition(isRight);
 	}
 
+	//get X component of lizard velocity
+	float xVel = GetVelocity().X;
+
 	//lizard can attack
 	if (CanAttack()) {
 		Attack();
 	}
 	//lizard not near player to attack
 	else if (!isAttack) {
-		//get X component of lizard velocity
-		float xVel = GetVelocity().X;
-
 		//compute rotation for lizard to face correct direction
 		float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
 			GetControlRotation().Yaw);
@@ -90,9 +98,12 @@ void ALizard::Tick(float DeltaTime)
 		//rotate player based on direction of motion
 		SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
 
+		//select correct walk animation
+		UPaperFlipbook* currWalk = hasSpear ? walkSpearAnim : (hasDagger ? walkDaggerAnim : walkAnim);
+
 		//update animation to walk if not already as such
-		if (GetSprite()->GetFlipbook() != walkAnim) {
-			GetSprite()->SetFlipbook(walkAnim);
+		if (GetSprite()->GetFlipbook() != currWalk) {
+			GetSprite()->SetFlipbook(currWalk);
 		}
 
 		Walk();
@@ -158,6 +169,10 @@ void ALizard::Attack() {
 }
 
 void ALizard::Spit() {
+	//select correct idle animation
+	UPaperFlipbook* currIdle = hasSpear ? idleSpearAnim : (hasDagger ? idleDaggerAnim : idleAnim);
+	GetSprite()->SetFlipbook(currIdle);
+
 	//initialize parameters for projectile spawn
 	FActorSpawnParameters params;
 	params.Owner = this;
@@ -183,6 +198,9 @@ void ALizard::Spear() {
 	}
 	//throw spear
 	else {
+		GetSprite()->SetLooping(false);
+		GetSprite()->SetFlipbook(throwAnim);
+
 		hasSpear = false;
 		spear->Launch(isRight);
 	}
@@ -206,11 +224,23 @@ void ALizard::Dagger() {
 }
 
 void ALizard::Dash() {
+	//select correct dash animation
+	UPaperFlipbook* currDash = hasSpear ? dashSpearAnim : dashDaggerAnim;
+
+	//update animation to dash
+	GetSprite()->SetFlipbook(currDash);
+
 	//begin movement for dash
 	LaunchCharacter(FVector(dashVel * (isRight ? 1.0f : -1.0f), 0.0f, 0.0f), true, true);
 }
 
 void ALizard::Recoil() {
+	//select correct recoil animation
+	UPaperFlipbook* currRecoil = hasSpear ? recoilSpearAnim : recoilDaggerAnim;
+
+	//update animation to dash
+	GetSprite()->SetFlipbook(currRecoil);
+
 	//begin movement for recoil
 	LaunchCharacter(FVector(recoilVel * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
 
@@ -226,6 +256,10 @@ void ALizard::ResetAttack() {
 
 	//reset attack flag to false
 	isAttack = false;
+
+	//reset animation settings
+	GetSprite()->SetLooping(true);
+	GetSprite()->Play();
 }
 
 void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
