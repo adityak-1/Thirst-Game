@@ -166,7 +166,7 @@ void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* Ot
 
 			//check if player was hit
 			if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-				Cast<AFrog>(OtherActor)->Damage(2);
+				Cast<AFrog>(OtherActor)->Damage(20);
 			}
 
 			//allow snake to recoil

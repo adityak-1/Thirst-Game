@@ -56,6 +56,7 @@ AFrog::AFrog()
 	dashAgain = true;
 	isMelee = false;
 	isRanged = false;
+	isShaded = false;
 }
 
 // Called when the game starts or when spawned
@@ -68,12 +69,27 @@ void AFrog::BeginPlay()
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::MeleeHit);
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CollisionBox->SetVisibility(false);
+
+	currentHealth = maxHealth;
+	currentWater = maxWater;
 }
 
 // Called every frame
 void AFrog::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (!isShaded) {
+		currentWater -= tickWater;
+	}
+
+	if (currentWater <= 0) {
+		currentWater = 0;
+		currentHealth -= tickHealth;
+	}
+	
+	if (currentHealth <= 0)
+		Die();
 
 	//get components of player velocity
 	float xVel = GetVelocity().X;
@@ -161,6 +177,9 @@ void AFrog::Dash()
 	if (!dashAgain || isDash || isBackstep || isMelee || isRanged)
 		return;
 
+	//reduce player's water meter
+	currentWater -= dashWater;
+
 	//initialize movement for dash
 	isDash = true;
 	dashAgain = false;
@@ -226,7 +245,8 @@ void AFrog::Melee()
 
 	isMelee = true;
 
-	//TODO reduce water by meleeWater
+	//reduce player's water meter
+	currentWater -= meleeWater;
 
 	//wait for some time, activate hitbox
 	GetWorldTimerManager().SetTimer(attackTimer, this,
@@ -276,7 +296,8 @@ void AFrog::Ranged()
 
 	isRanged = true;
 
-	//TODO reduce water by rangedWater
+	//reduce player's water meter
+	currentWater -= rangedWater;
 
 	//wait for some time, spawn projectile
 	GetWorldTimerManager().SetTimer(attackTimer, this,
@@ -307,6 +328,7 @@ void AFrog::StopRanged()
 	isRanged = false;
 }
 
+//called when a melee attack hits
 void AFrog::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	//if other actor is enemy, call damage function
@@ -321,7 +343,13 @@ void AFrog::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActo
 	}
 }
 
-//called when an attack hits the snake
+//called when frog is hit by an enemy
 void AFrog::Damage(int damageTaken) {
-	hitPoints -= damageTaken;
+	currentHealth -= damageTaken;
+}
+
+//called when health <= 0
+//TODO go to death screen --> respawn at last checkpoint
+void AFrog::Die() {
+	Destroy();
 }

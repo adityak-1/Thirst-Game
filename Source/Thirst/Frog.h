@@ -63,6 +63,10 @@ public:
 	UFUNCTION()
 		void MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	//function called when health reaches 0
+	UFUNCTION()
+		void Die();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -127,9 +131,53 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float rangedEndlag;
 
+	//max health
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+		float maxHealth;
+
+	//max water
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+		float maxWater;
+	
+	//current health
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+		float currentHealth;
+
+	//current water
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+		float currentWater;
+
+	//water lost per tick while not shaded
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+		float tickWater;
+
+	//health lost per tick while water <= 0
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+		float tickHealth;
+
+	//water cost for melee
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float meleeWater;
+
+	//water cost for ranged
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float rangedWater;
+
+	//water cost for dash
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float dashWater;
+
 	//projectile for ranged attack
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 		TSubclassOf<class AProjectile> projectile;
+
+	//damage inflicted by melee attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float meleeDamage;
+
+	//damage inflicted by ranged attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float rangedDamage;
 
 	//animation when player is idle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
@@ -164,12 +212,8 @@ protected:
 		class UPaperFlipbook* rangedAnim;
 
 private:
-	bool isDash, dashAgain, isBackstep, isMelee, isRanged;
-	int meleeDamage = 2;
-	int meleeWater = 1;
-	int rangedDamage = 1;
-	int rangedWater = 1;
-	int hitPoints = 100;
+	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded;
+
 	FTimerHandle movementTimer;
 	FTimerHandle attackTimer;
 };
