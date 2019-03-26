@@ -263,16 +263,16 @@ void ALizard::ResetAttack() {
 }
 
 void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	//check if player was hit
+	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+		Cast<AFrog>(OtherActor)->Damage(2);
+	}
+
 	if (OtherActor != this) {
 		//check whether lizard is attacking
 		if (isAttack) {
 			//disable timed ending of attack
 			GetWorldTimerManager().ClearTimer(resetTimer);
-
-			//check if player was hit
-			if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-				Cast<AFrog>(OtherActor)->Damage(2);
-			}
 
 			//allow lizard to recoil
 			Recoil();

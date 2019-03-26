@@ -154,6 +154,11 @@ void ASnake::StartLunge() {
 }
 
 void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	//check if player was hit
+	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+		Cast<AFrog>(OtherActor)->Damage(20);
+	}
+
 	if (OtherActor != this) {
 		//check whether snake is lunging
 		if (beginLunge) {
@@ -163,11 +168,6 @@ void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* Ot
 
 			//disable timed ending of lunge
 			GetWorldTimerManager().ClearTimer(endTimer);
-
-			//check if player was hit
-			if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-				Cast<AFrog>(OtherActor)->Damage(20);
-			}
 
 			//allow snake to recoil
 			StopLunge();
