@@ -26,20 +26,20 @@ public:
 	UFUNCTION()
 		float GetPlayerDisp();
 
-	// function to handle snake sliding
+	// function to handle scarab sliding
 	UFUNCTION()
 		void Sliding();
 
-	// functions to handle snake lunge
+	// functions to handle scarab bite
 	UFUNCTION()
 		bool CanBite();
 	void Bite();
 
-	//function for snake to take damage
+	//function for scarab to make damage
 	UFUNCTION()
 		void Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	//function for snake to take damage
+	//function for scarab to take damage
 	UFUNCTION()
 		void Damage(int damageTaken);
 
@@ -47,19 +47,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//scale for snake speed
+	//scale for scarab speed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float speedScale;
 
-	//radius that snake can travel within
+	//radius that scarab can travel within
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float moveRadius;
 
-	//radius that snake can travel within
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-		float moveHeight;
-
-	//distance that snake can see ahead
+	//distance that scarab can see ahead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float visionDist;
 
@@ -73,9 +69,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 		int hitPoints;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-		int biteTime;
+	//attack
 
 private:
 	FVector center;
@@ -83,5 +77,4 @@ private:
 	bool isRight;
 	bool isBiting;
 	bool currentBiting;
-	long startBitingTime, endBitingTime;
 };

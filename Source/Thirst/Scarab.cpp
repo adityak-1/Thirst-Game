@@ -39,12 +39,7 @@ void AScarab::BeginPlay()
 
 	//get the collision box on the scarab
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-	if (collisionBox)
-		collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AScarab::Collide);
-	else {
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Some debug message!"));
-	}
+	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AScarab::Collide);
 }
 
 // Called every frame
@@ -67,6 +62,10 @@ void AScarab::Tick(float DeltaTime)
 	//rotate player based on direction of motion
 	SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
 
+	//current Biting = false;
+	if (!currentBiting)
+		isBiting = false;
+
 	//scarab has detected player
 	if (CanBite()) {
 		Bite();
@@ -85,9 +84,6 @@ void AScarab::Tick(float DeltaTime)
 		}
 		Sliding();
 	}
-
-	//currentBiting = false;
-	isBiting = false;
 }
 
 void AScarab::Sliding() {
@@ -125,6 +121,8 @@ bool AScarab::CanBite() {
 
 void AScarab::Bite() {
 	if (!currentBiting) {
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("bite called correctly!!!!!!!!!"));
 		UPaperFlipbook* currAnim;
 		currAnim = biteAnim;
 		if (GetSprite()->GetFlipbook() != currAnim) {
@@ -133,33 +131,39 @@ void AScarab::Bite() {
 
 		//update scarab to face player
 		SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
-		startBitingTime = static_cast<long> (time(NULL));
 		isBiting = true;
-		//currentBiting = true;
+		currentBiting = true;
 	}
 }
 
 void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	//check if player was hit
+	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+		Cast<AFrog>(OtherActor)->Damage(50);
+		currentBiting = false;
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("damage maken!!!!!!!!!"));
+	}
+	else {
+		Damage(1);
+	}
+
 	if (OtherActor != this) {
 		//check whether scarab is biting
 		if (isBiting) {
-
-			//check if player was hit
-			if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-				Cast<AFrog>(OtherActor)->Damage(20);
-			}
-			//isBiting = false;
+			if (GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("is biting!!!!!!!!!"));
 		}
-		else {
-			//flip direction of scarab
-			isRight = !isRight;
-		}
+	}
+	else {
+		//flip direction of scarab
+		isRight = !isRight;
 	}
 }
 
 //called when an attack hits the scarab
 void AScarab::Damage(int damageTaken) {
-	hitPoints -= 3;
+	hitPoints -= damageTaken;
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("damage taken!!!!!!!!!"));
 }
