@@ -11,15 +11,19 @@
 #include "Engine/GameEngine.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
+#include "Components/BoxComponent.h"
+#include "Frog.h"
+#include <time.h>
 
-// Sets default values
+ // Sets default values
 AScarab::AScarab()
 {
 	//set this character to call Tick() every frame
 	PrimaryActorTick.bCanEverTick = true;
 
 	isRight = true;
-	isHigh = false;
+	isBiting = false;
+	currentBiting = false;
 }
 
 // Called when the game starts or when spawned
@@ -32,6 +36,15 @@ void AScarab::BeginPlay()
 
 	//set scarab to target player
 	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	//get the collision box on the scarab
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	if (collisionBox)
+		collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AScarab::Collide);
+	else {
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Some debug message!"));
+	}
 }
 
 // Called every frame
@@ -60,19 +73,21 @@ void AScarab::Tick(float DeltaTime)
 	}
 	//scarab does not find player
 	else {
+		//set next animation state
+		UPaperFlipbook* currAnim;
+
+		//set animation to hover
+		currAnim = hoverAnim;
+
+		//update player animation if incorrect
+		if (GetSprite()->GetFlipbook() != currAnim) {
+			GetSprite()->SetFlipbook(currAnim);
+		}
 		Sliding();
 	}
 
-	//set next animation state
-	UPaperFlipbook* currAnim;
-
-	//set animation to slither
-	currAnim = slidingAnim;
-
-	//update player animation if incorrect
-	if (GetSprite()->GetFlipbook() != currAnim) {
-		GetSprite()->SetFlipbook(currAnim);
-	}
+	//currentBiting = false;
+	isBiting = false;
 }
 
 void AScarab::Sliding() {
@@ -91,7 +106,7 @@ void AScarab::Sliding() {
 		GetCharacterMovement()->StopMovementImmediately();
 		isRight = !isRight;
 	}
-		
+
 }
 
 float AScarab::GetPlayerDisp() {
@@ -109,11 +124,42 @@ bool AScarab::CanBite() {
 }
 
 void AScarab::Bite() {
-	//update scarab to face player
-	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
+	if (!currentBiting) {
+		UPaperFlipbook* currAnim;
+		currAnim = biteAnim;
+		if (GetSprite()->GetFlipbook() != currAnim) {
+			GetSprite()->SetFlipbook(currAnim);
+		}
+
+		//update scarab to face player
+		SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
+		startBitingTime = static_cast<long> (time(NULL));
+		isBiting = true;
+		//currentBiting = true;
+	}
+}
+
+void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	if (OtherActor != this) {
+		//check whether scarab is biting
+		if (isBiting) {
+
+			//check if player was hit
+			if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+				Cast<AFrog>(OtherActor)->Damage(20);
+			}
+			//isBiting = false;
+		}
+		else {
+			//flip direction of scarab
+			isRight = !isRight;
+		}
+	}
 }
 
 //called when an attack hits the scarab
 void AScarab::Damage(int damageTaken) {
-	hitPoints -= damageTaken;
+	hitPoints -= 3;
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("damage taken!!!!!!!!!"));
 }

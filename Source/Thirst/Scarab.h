@@ -2,18 +2,19 @@
 
 #pragma once
 
+#include <time.h>
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
 #include "Scarab.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class THIRST_API AScarab : public APaperCharacter
 {
 	GENERATED_BODY()
-	
+
 public:
 	// Sets default values for this character's properties
 	AScarab();
@@ -33,6 +34,10 @@ public:
 	UFUNCTION()
 		bool CanBite();
 	void Bite();
+
+	//function for snake to take damage
+	UFUNCTION()
+		void Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	//function for snake to take damage
 	UFUNCTION()
@@ -60,7 +65,7 @@ protected:
 
 	//animation when player is slithering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
-		class UPaperFlipbook* slidingAnim;
+		class UPaperFlipbook* hoverAnim;
 
 	//animation when player is lunging
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
@@ -69,9 +74,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 		int hitPoints;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+		int biteTime;
+
 private:
 	FVector center;
 	APawn* enemy;
 	bool isRight;
-	bool isHigh;
+	bool isBiting;
+	bool currentBiting;
+	long startBitingTime, endBitingTime;
 };
