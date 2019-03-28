@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <time.h>
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
+#include "Components/BoxComponent.h"
 #include "Scarab.generated.h"
 
 /**
@@ -28,12 +28,18 @@ public:
 
 	// function to handle scarab sliding
 	UFUNCTION()
-		void Sliding();
+		void hover();
 
 	// functions to handle scarab bite
 	UFUNCTION()
 		bool CanBite();
 	void Bite();
+	void BiteEnd();
+	void resetBite();
+
+	// functions to handle scarab see
+	UFUNCTION()
+		bool CanSee();
 
 	//function for scarab to make damage
 	UFUNCTION()
@@ -59,11 +65,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float visionDist;
 
-	//animation when player is slithering
+	//distance that scarab can bite
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float biteDist;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float biteDelay;
+
+	//animation when player is hovering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* hoverAnim;
 
-	//animation when player is lunging
+	//animation when player is bite
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* biteAnim;
 
@@ -77,4 +90,7 @@ private:
 	bool isRight;
 	bool isBiting;
 	bool currentBiting;
+	UBoxComponent* collisionBox;
+	FTimerHandle startTimer;
+	FTimerHandle endTimer;
 };

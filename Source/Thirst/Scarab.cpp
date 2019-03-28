@@ -11,9 +11,9 @@
 #include "Engine/GameEngine.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
+#include "TimerManager.h"
 #include "Components/BoxComponent.h"
 #include "Frog.h"
-#include <time.h>
 
  // Sets default values
 AScarab::AScarab()
@@ -38,7 +38,7 @@ void AScarab::BeginPlay()
 	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
 
 	//get the collision box on the scarab
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
 	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AScarab::Collide);
 }
 
@@ -82,11 +82,11 @@ void AScarab::Tick(float DeltaTime)
 		if (GetSprite()->GetFlipbook() != currAnim) {
 			GetSprite()->SetFlipbook(currAnim);
 		}
-		Sliding();
+		hover();
 	}
 }
 
-void AScarab::Sliding() {
+void AScarab::hover() {
 
 	AddMovementInput(FVector(speedScale, 0.0f, 0.0f), (isRight ? 1.0f : -1.0f));
 
@@ -116,11 +116,25 @@ bool AScarab::CanBite() {
 	//get displacement to player
 	float disp = GetPlayerDisp();
 
-	return abs(disp) <= visionDist && (isRight != (disp < 0));
+	return abs(disp) <= biteDist && (isRight != (disp < 0));
+}
+
+bool AScarab::CanSee() {
+	//get displacement to player
+	float disp = GetPlayerDisp();
+
+	return abs(disp) <= visionDist;
 }
 
 void AScarab::Bite() {
+	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
+	AddMovementInput(FVector(speedScale, 0.0f, 0.0f), (isRight ? 1.0f : -1.0f));
 	if (!currentBiting) {
+		float disp = GetPlayerDisp();
+		if (disp < 0)
+			isRight = false;
+		else
+			isRight = true;
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("bite called correctly!!!!!!!!!"));
 		UPaperFlipbook* currAnim;
@@ -130,17 +144,52 @@ void AScarab::Bite() {
 		}
 
 		//update scarab to face player
-		SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
 		isBiting = true;
 		currentBiting = true;
+		GetWorld()->GetTimerManager().SetTimer(startTimer, this,
+			&AScarab::BiteEnd, biteDelay, false);
 	}
+}
+
+void AScarab::BiteEnd() {
+	currentBiting = false;
+	isRight = !isRight;
+
+	float disp = GetPlayerDisp();
+	if (disp < 0)
+		isRight = false;
+	else
+		isRight = true;
+
+	/*GetCharacterMovement()->StopMovementImmediately();
+
+	//reset snake to slither animation with looping
+	GetSprite()->SetLooping(true);
+	GetSprite()->Play();
+	GetSprite()->SetFlipbook(hoverAnim);*/
+
+	currentBiting = false;
+
+	//GetWorld()->GetTimerManager().SetTimer(endTimer, this,
+		//&AScarab::resetBite, biteDelay, false);
+}
+
+void AScarab::resetBite() {
+
+	GetCharacterMovement()->StopMovementImmediately();
+
+	//reset snake to slither animation with looping
+	GetSprite()->SetLooping(true);
+	GetSprite()->Play();
+	GetSprite()->SetFlipbook(hoverAnim);
+
+	currentBiting = false;
 }
 
 void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
 	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
 		Cast<AFrog>(OtherActor)->Damage(50);
-		currentBiting = false;
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("damage maken!!!!!!!!!"));
 	}
