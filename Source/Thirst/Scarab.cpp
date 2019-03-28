@@ -24,6 +24,7 @@ AScarab::AScarab()
 	isRight = true;
 	isBiting = false;
 	currentBiting = false;
+	validBite = false;
 }
 
 // Called when the game starts or when spawned
@@ -135,8 +136,6 @@ void AScarab::Bite() {
 			isRight = false;
 		else
 			isRight = true;
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("bite called correctly!!!!!!!!!"));
 		UPaperFlipbook* currAnim;
 		currAnim = biteAnim;
 		if (GetSprite()->GetFlipbook() != currAnim) {
@@ -161,6 +160,7 @@ void AScarab::BiteEnd() {
 	else
 		isRight = true;
 
+	validBite = true;
 	/*GetCharacterMovement()->StopMovementImmediately();
 
 	//reset snake to slither animation with looping
@@ -189,23 +189,16 @@ void AScarab::resetBite() {
 void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
 	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-		Cast<AFrog>(OtherActor)->Damage(50);
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("damage maken!!!!!!!!!"));
+		if (validBite) {
+			Cast<AFrog>(OtherActor)->Damage(50);
+			validBite = false;
+		}
 	}
 	else {
 		Damage(1);
 	}
 
-	if (OtherActor != this) {
-		//check whether scarab is biting
-		if (isBiting) {
-			if (GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("is biting!!!!!!!!!"));
-		}
-	}
-	else {
-		//flip direction of scarab
+	if (OtherActor == this) {
 		isRight = !isRight;
 	}
 }
@@ -213,6 +206,4 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 //called when an attack hits the scarab
 void AScarab::Damage(int damageTaken) {
 	hitPoints -= damageTaken;
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("damage taken!!!!!!!!!"));
 }

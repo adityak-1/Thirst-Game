@@ -90,6 +90,7 @@ private:
 	bool isRight;
 	bool isBiting;
 	bool currentBiting;
+	bool validBite;
 	UBoxComponent* collisionBox;
 	FTimerHandle startTimer;
 	FTimerHandle endTimer;
