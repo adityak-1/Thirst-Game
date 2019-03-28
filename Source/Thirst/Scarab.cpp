@@ -139,13 +139,10 @@ void AScarab::Bite() {
 void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
 	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-		Cast<AFrog>(OtherActor)->Damage(50);
+		Cast<AFrog>(OtherActor)->Damage(5);
 		currentBiting = false;
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("damage maken!!!!!!!!!"));
-	}
-	else {
-		Damage(1);
 	}
 
 	if (OtherActor != this) {

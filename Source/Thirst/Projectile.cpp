@@ -13,6 +13,7 @@
 #include "Frog.h"
 #include "Snake.h"
 #include "Lizard.h"
+#include "Scarab.h"
 
 // Sets default values
 AProjectile::AProjectile() {
@@ -103,21 +104,24 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		if (OtherActor != parent) {
 			//do damage to OtherActor (enemy could possibly attack another enemy)
 			if (OtherActor->IsA<ASnake>()) {
-				Cast<ASnake>(OtherActor)->Damage(2);
+				Cast<ASnake>(OtherActor)->Damage(1);
 			}
 			else if (OtherActor->IsA<ALizard>()) {
-				Cast<ALizard>(OtherActor)->Damage(2);
+				Cast<ALizard>(OtherActor)->Damage(1);
 			}
-			/*
+			else if (OtherActor->IsA<AScarab>()) {
+				Cast<AScarab>(OtherActor)->Damage(1);
+			}
 			else if(OtherActor->IsA<AFrog>()){
-				Cast<AFrog>(OtherActor)->Damage(2);
-			}*/
+				Cast<AFrog>(OtherActor)->Damage(5);
+			}
 		}
 
 		if (canDelete) {
 			Stop();
 		}
 		else {
+			//TODO apparently the lizard recoils when it hits the player?
 			//lizard's spear collided with player
 			if (OtherActor->IsA<AFrog>() && parent->IsA<ALizard>()) {
 				Cast<ALizard>(parent)->Recoil();

@@ -56,10 +56,27 @@ public:
 	UFUNCTION()
 		void StopRanged();
 
-	//function for player to take damage
+	//TODO setters should use e.g. std::max(maxHealth, h) if we ever implement a heal
+	//setters for currentHealth and currentWater
 	UFUNCTION()
-		void Damage(int damageTaken);
+		void SetCurrentHealth(float h) { currentHealth = h; }
+	UFUNCTION()
+		void SetCurrentWater(float w) { currentWater = w; }
 
+	//fully restore health and water when player overlaps well
+	UFUNCTION()
+		void WellRestore(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	//prevent passive water loss when shaded
+	UFUNCTION()
+		void InShade(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UFUNCTION()
+		void OutShade(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+		void Damage(float damageTaken);
+
+	//delegate to handle when melee attack hits an enemy
 	UFUNCTION()
 		void MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 

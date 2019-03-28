@@ -21,11 +21,15 @@
 #include "TimerManager.h"
 #include "PaperFlipbookComponent.h"
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
+#include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "Snake.h"
 #include "Lizard.h"
+#include "Scarab.h"
 #include "Engine/World.h"
 #include "Projectile.h"
+#include "Well.h"
+#include "Shade.h"
 
 // Sets default values
 AFrog::AFrog()
@@ -69,6 +73,17 @@ void AFrog::BeginPlay()
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::MeleeHit);
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CollisionBox->SetVisibility(false);
+
+	//Using the capsule was causing UE4 Editor to crash
+	//TODO make this work with capsule so we don't have to use an absurd extra collision box
+	//Delegate for handling Well overlap
+	UBoxComponent* WellBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
+	WellBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::WellRestore);
+
+	//Delegates for handling when player enters and exits shade
+	UBoxComponent* ShadeBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
+	ShadeBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::InShade);
+	ShadeBox->OnComponentEndOverlap.AddDynamic(this, &AFrog::OutShade);
 
 	currentHealth = maxHealth;
 	currentWater = maxWater;
@@ -335,17 +350,40 @@ void AFrog::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActo
 	if (OtherActor != this) {
 		//do damage to OtherActor (enemy could possibly attack another enemy)
 		if (OtherActor->IsA<ASnake>()) {
-			Cast<ASnake>(OtherActor)->Damage(2);
+			Cast<ASnake>(OtherActor)->Damage(meleeDamage);
 		}
 		else if (OtherActor->IsA<ALizard>()) {
-			Cast<ALizard>(OtherActor)->Damage(2);
+			Cast<ALizard>(OtherActor)->Damage(meleeDamage);
+		}
+		else if (OtherActor->IsA<AScarab>()) {
+			Cast<AScarab>(OtherActor)->Damage(meleeDamage);
 		}
 	}
 }
 
 //called when frog is hit by an enemy
-void AFrog::Damage(int damageTaken) {
-	currentHealth -= damageTaken;
+void AFrog::Damage(float damageTaken) {
+	SetCurrentHealth(currentHealth - damageTaken);
+	//TODO Add recoil effect when damage is taken
+}
+
+void AFrog::WellRestore(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
+	if (OtherActor->IsA<AWell>()) {
+		SetCurrentWater(maxWater);
+		SetCurrentHealth(maxHealth);
+	}
+}
+
+void AFrog::InShade(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
+	if (OtherActor->IsA<AShade>()) {
+		isShaded = true;
+	}
+}
+
+void AFrog::OutShade(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	if (OtherActor->IsA<AShade>()) {
+		isShaded = false;
+	}
 }
 
 //called when health <= 0
