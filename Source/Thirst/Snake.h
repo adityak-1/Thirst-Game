@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PaperCharacter.h"
+#include "Enemy.h"
 #include "Snake.generated.h"
 
 /**
  *
  */
 UCLASS()
-class THIRST_API ASnake : public APaperCharacter
+class THIRST_API ASnake : public AEnemy
 {
 	GENERATED_BODY()
 
@@ -20,10 +20,6 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// function to get displacement to player
-	UFUNCTION()
-		float GetPlayerDisp();
 
 	// function to handle snake slither
 	UFUNCTION()
@@ -42,10 +38,6 @@ public:
 		void ResetLunge();
 	UFUNCTION()
 		void Collide(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
-	//function for snake to take damage
-	UFUNCTION()
-		void Damage(int damageTaken);
 
 protected:
 	// Called when the game starts or when spawned
@@ -87,14 +79,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* lungeAnim;
 
-	//health of snake
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-		int hitPoints;
-
 private:
-	FVector center;
-	APawn* enemy;
-	bool isRight;
 	bool beginLunge;
 	bool endLunge;
 	FTimerHandle startTimer;

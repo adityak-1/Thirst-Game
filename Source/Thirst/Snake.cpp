@@ -21,11 +21,8 @@
 #include "Frog.h"
 
 // Sets default values
-ASnake::ASnake()
+ASnake::ASnake() : AEnemy()
 {
-	//set this character to call Tick() every frame
-	PrimaryActorTick.bCanEverTick = true;
-
 	//set default values for flags
 	isRight = false;
 	beginLunge = false;
@@ -36,12 +33,6 @@ ASnake::ASnake()
 void ASnake::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//get the position of snake as movement center
-	center = GetCharacterMovement()->GetActorLocation();
-
-	//set snake to target player
-	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
 
 	//get the collision box on the snake
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
@@ -108,14 +99,6 @@ void ASnake::Slither() {
 	}
 }
 
-float ASnake::GetPlayerDisp() {
-	//get current X position
-	float currX = GetCharacterMovement()->GetActorLocation().X;
-
-	//return displacement
-	return currX - enemy->GetActorLocation().X;
-}
-
 bool ASnake::CanLunge() {
 	//get displacement to player
 	float disp = GetPlayerDisp();
@@ -156,7 +139,7 @@ void ASnake::StartLunge() {
 void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
 	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
-		Cast<AFrog>(OtherActor)->Damage(15);
+		Cast<AFrog>(OtherActor)->Damage(5);
 	}
 
 	if (OtherActor != this) {
@@ -205,9 +188,4 @@ void ASnake::ResetLunge() {
 
 	//clear lunge flags
 	endLunge = false;
-}
-
-//called when an attack hits the snake
-void ASnake::Damage(int damageTaken) {
-	hitPoints -= damageTaken;
 }

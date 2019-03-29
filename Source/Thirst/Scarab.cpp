@@ -16,11 +16,9 @@
 #include "Frog.h"
 
  // Sets default values
-AScarab::AScarab()
+AScarab::AScarab() : AEnemy()
 {
-	//set this character to call Tick() every frame
-	PrimaryActorTick.bCanEverTick = true;
-
+	//set default values for flags
 	isRight = true;
 	isBiting = false;
 	currentBiting = false;
@@ -32,14 +30,8 @@ void AScarab::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//get the position of scarab as movement center
-	center = GetCharacterMovement()->GetActorLocation();
-
-	//set scarab to target player
-	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
-
 	//get the collision box on the scarab
-	collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
 	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AScarab::Collide);
 }
 
@@ -104,13 +96,6 @@ void AScarab::hover() {
 		isRight = !isRight;
 	}
 
-}
-
-float AScarab::GetPlayerDisp() {
-	//get current X position
-	float currX = GetCharacterMovement()->GetActorLocation().X;
-
-	return enemy->GetActorLocation().X - currX;
 }
 
 bool AScarab::CanBite() {
@@ -199,9 +184,4 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 	if (OtherActor == this) {
 		isRight = !isRight;
 	}
-}
-
-//called when an attack hits the scarab
-void AScarab::Damage(int damageTaken) {
-	hitPoints -= damageTaken;
 }
