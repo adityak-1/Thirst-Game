@@ -11,9 +11,8 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 #include "Frog.h"
-#include "Snake.h"
+#include "Enemy.h"
 #include "Lizard.h"
-#include "Scarab.h"
 
 // Sets default values
 AProjectile::AProjectile() {
@@ -90,7 +89,7 @@ void AProjectile::Launch(bool isRight) {
 
 void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
 	//if other actor is enemy, call damage function
-	if (OtherActor != this && OtherActor != parent && !OtherActor->IsA<AProjectile>())
+	if (OtherActor != this && OtherActor != parent)
 	{
 		//disable timed removal of projectile
 		GetWorldTimerManager().ClearTimer(movementTimer);
@@ -101,20 +100,12 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 			collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 
-		if (OtherActor != parent) {
-			//do damage to OtherActor (enemy could possibly attack another enemy)
-			if (OtherActor->IsA<ASnake>()) {
-				Cast<ASnake>(OtherActor)->Damage(1);
-			}
-			else if (OtherActor->IsA<ALizard>()) {
-				Cast<ALizard>(OtherActor)->Damage(1);
-			}
-			else if (OtherActor->IsA<AScarab>()) {
-				Cast<AScarab>(OtherActor)->Damage(1);
-			}
-			else if(OtherActor->IsA<AFrog>()){
-				Cast<AFrog>(OtherActor)->Damage(5);
-			}
+		//apply damage to other actor
+		if (OtherActor->IsA<AFrog>()) {
+			Cast<AFrog>(OtherActor)->Damage(5);
+		}
+		else if (OtherActor->IsA<AEnemy>()) {
+			Cast<AEnemy>(OtherActor)->Damage(1);
 		}
 
 		if (canDelete) {
