@@ -23,9 +23,7 @@
 #include "Runtime/Engine/Classes/Components/BoxComponent.h"
 #include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
-#include "Snake.h"
-#include "Lizard.h"
-#include "Scarab.h"
+#include "Enemy.h"
 #include "Engine/World.h"
 #include "Projectile.h"
 #include "Well.h"
@@ -61,6 +59,7 @@ AFrog::AFrog()
 	isMelee = false;
 	isRanged = false;
 	isShaded = false;
+	isStun = false;
 }
 
 // Called when the game starts or when spawned
@@ -224,7 +223,7 @@ void AFrog::Backstep()
 {
 	//do not allow overlapping backstep moves and only allow when grounded
 	//also disable if doing dash on ground or attacking
-	if (isBackstep || !GetCharacterMovement()->IsMovingOnGround() || isDash || isMelee || isRanged)
+	if (!isStun && (isBackstep || !GetCharacterMovement()->IsMovingOnGround() || isDash || isMelee || isRanged))
 		return;
 
 	//initialize movement for dash
@@ -249,6 +248,7 @@ void AFrog::StopBackstep()
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
 	isBackstep = false;
+	isStun = false;
 }
 
 //beginning of melee cycle (startup)
@@ -347,24 +347,18 @@ void AFrog::StopRanged()
 void AFrog::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	//if other actor is enemy, call damage function
-	if (OtherActor != this) {
-		//do damage to OtherActor (enemy could possibly attack another enemy)
-		if (OtherActor->IsA<ASnake>()) {
-			Cast<ASnake>(OtherActor)->Damage(meleeDamage);
-		}
-		else if (OtherActor->IsA<ALizard>()) {
-			Cast<ALizard>(OtherActor)->Damage(meleeDamage);
-		}
-		else if (OtherActor->IsA<AScarab>()) {
-			Cast<AScarab>(OtherActor)->Damage(meleeDamage);
-		}
+	if (OtherActor != this && OtherActor->IsA<AEnemy>()) {
+		Cast<AEnemy>(OtherActor)->Damage(meleeDamage);
 	}
 }
 
 //called when frog is hit by an enemy
 void AFrog::Damage(float damageTaken) {
 	SetCurrentHealth(currentHealth - damageTaken);
-	//TODO Add recoil effect when damage is taken
+
+	//recoil back when damage is taken
+	isStun = true;
+	Backstep();
 }
 
 void AFrog::WellRestore(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {

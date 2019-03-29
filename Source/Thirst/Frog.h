@@ -229,7 +229,7 @@ protected:
 		class UPaperFlipbook* rangedAnim;
 
 private:
-	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded;
+	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded, isStun;
 
 	FTimerHandle movementTimer;
 	FTimerHandle attackTimer;
