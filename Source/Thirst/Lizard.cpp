@@ -10,8 +10,6 @@
 #include "Lizard.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PaperFlipbookComponent.h"
-#include "GameFramework/PlayerController.h"
-#include "Engine/World.h"
 #include "TimerManager.h"
 #include "Components/BoxComponent.h"
 #include "Projectile.h"
@@ -19,11 +17,8 @@
 #include "Engine/GameEngine.h"
 
 // Sets default values
-ALizard::ALizard()
+ALizard::ALizard() : AEnemy()
 {
-	//set this character to call Tick() every frame
-	PrimaryActorTick.bCanEverTick = true;
-
 	//set default values for flags
 	isRight = false;
 	isAttack = false;
@@ -33,12 +28,6 @@ ALizard::ALizard()
 void ALizard::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//get the position of lizard as movement center
-	center = GetCharacterMovement()->GetActorLocation();
-
-	//set lizard to target player
-	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
 
 	//initialize the dagger collision box on the lizard
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
@@ -128,14 +117,6 @@ void ALizard::Walk() {
 		//flip lizard direction
 		isRight = !isRight;
 	}
-}
-
-float ALizard::GetPlayerDisp() {
-	//get current X position
-	float currX = GetCharacterMovement()->GetActorLocation().X;
-
-	//return displacement
-	return currX - enemy->GetActorLocation().X;
 }
 
 bool ALizard::CanAttack() {
@@ -283,9 +264,4 @@ void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 			isRight = !isRight;
 		}
 	}
-}
-
-//called when an attack hits the lizard
-void ALizard::Damage(int damageTaken) {
-	hitPoints -= damageTaken;
 }
