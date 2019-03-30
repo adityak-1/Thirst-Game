@@ -24,7 +24,7 @@ public:
 
 	//function to handle start of projectile motion
 	UFUNCTION()
-		void Start(APawn *parent, bool isRight, bool canLaunch = true);
+		void Start(APawn *parent, bool isRight);
 	UFUNCTION()
 		void Launch(bool isRight);
 

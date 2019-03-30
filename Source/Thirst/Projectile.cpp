@@ -12,8 +12,6 @@
 #include "Engine/World.h"
 #include "Frog.h"
 #include "Enemy.h"
-#include "Lizard.h"
-#include "Engine.h"
 
 // Sets default values
 AProjectile::AProjectile() {
@@ -23,8 +21,7 @@ AProjectile::AProjectile() {
 	//set initial gravity of projectile to 0
 	GetCharacterMovement()->GravityScale = 0.0f;
 
-	//initialize flags
-	canDelete = false;
+	//set moving flag to false
 	isMoving = false;
 }
 
@@ -56,7 +53,7 @@ void AProjectile::BeginPlay()
 	SetActorHiddenInGame(true);
 }
 
-void AProjectile::Start(APawn *owner, bool isRight, bool canLaunch){
+void AProjectile::Start(APawn *owner, bool isRight){
 	//update the parent of the projectile
 	parent = owner;
 
@@ -78,10 +75,11 @@ void AProjectile::Start(APawn *owner, bool isRight, bool canLaunch){
 	//delegate to handle removal of projectile
 	GetSprite()->OnFinishedPlaying.AddDynamic(this, &AProjectile::Remove);
 
-	if (canLaunch) {
-		moveRight = isRight;
-		Launch(isRight);
-	}
+	//update direction boolean
+	moveRight = isRight;
+	
+	//launch projectile
+	Launch(isRight);
 }
 
 void AProjectile::UpdatePosition(bool isRight) {
@@ -123,10 +121,8 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		GetWorldTimerManager().ClearTimer(movementTimer);
 
 		//disable collision box on projectile
-		if (canDelete) {
-			UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-			collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		}
+		UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+		collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		//apply damage to other actor
 		if (OtherActor->IsA<AFrog>()) {
@@ -136,16 +132,7 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 			Cast<AEnemy>(OtherActor)->Damage(1);
 		}
 
-		if (canDelete) {
-			Stop();
-		}
-		else {
-			//TODO apparently the lizard recoils when it hits the player?
-			//lizard's spear collided with player
-			if (OtherActor->IsA<AFrog>() && parent->IsA<ALizard>()) {
-				Cast<ALizard>(parent)->Recoil();
-			}
-		}
+		Stop();
 	}
 }
 

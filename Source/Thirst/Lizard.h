@@ -39,6 +39,8 @@ public:
 	UFUNCTION()
 		void Spear();
 	UFUNCTION()
+		void ThrowSpear();
+	UFUNCTION()
 		void Dagger();
 	UFUNCTION()
 		void Dash();
@@ -48,6 +50,8 @@ public:
 		void ResetAttack();
 	UFUNCTION()
 		void Collide(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UFUNCTION()
+		void WeaponCollide(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 protected:
 	// Called when the game starts or when spawned
@@ -97,6 +101,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float resetDelay;
 
+	//time for lizard throw
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float throwTime;
+
 	//time for lizard dash
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float dashTime;
@@ -141,12 +149,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* recoilSpearAnim;
 
-	//animation when lizard throws spear
+	//animation when lizard starts to throw spear
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
-		class UPaperFlipbook* throwAnim;
+		class UPaperFlipbook* startThrowAnim;
+
+	//animation when lizard completes spear throw
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* endThrowAnim;
 
 private:
-	AProjectile* spear;
 	bool isAttack;
 	FTimerHandle startTimer;
 	FTimerHandle resetTimer;
