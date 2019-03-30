@@ -138,7 +138,7 @@ void ALizard::Attack() {
 	GetCharacterMovement()->StopMovementImmediately();
 
 	//select attack to make
-	int randInt = FMath::RandRange(0, 1);
+	int randInt = 1;//FMath::RandRange(0, 1);
 
 	FunctionPtr ptr = (randInt == 0) ? &ALizard::Spit :
 		(hasSpear ? &ALizard::Spear : 
@@ -159,10 +159,10 @@ void ALizard::Spit() {
 	params.Owner = this;
 
 	//spawn projectile
-	AProjectile* waterBall = GetWorld()->SpawnActor<AProjectile>(projectile, GetActorLocation(), GetActorRotation(), params);
+	AProjectile* acidBall = GetWorld()->SpawnActor<AProjectile>(projectile, GetActorLocation(), GetActorRotation(), params);
 
 	//allow the projectile to move
-	waterBall->Start(this, isRight);
+	acidBall->Start(this, isRight);
 
 	//wait for some time, end animation
 	GetWorldTimerManager().SetTimer(resetTimer, this,
@@ -171,7 +171,7 @@ void ALizard::Spit() {
 
 void ALizard::Spear() {
 	//select dash or throw
-	int randInt = FMath::RandRange(0, 1);
+	int randInt = 1;// FMath::RandRange(0, 1);
 
 	//dash with spear
 	if (randInt == 0) {
@@ -187,8 +187,8 @@ void ALizard::Spear() {
 	}
 
 	//wait for some time, end animation
-	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::ResetAttack, (randInt == 0 ? dashTime : resetDelay), false);
+	/*GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::ResetAttack, (randInt == 0 ? dashTime : resetDelay), false);*/
 }
 
 void ALizard::Dagger() {

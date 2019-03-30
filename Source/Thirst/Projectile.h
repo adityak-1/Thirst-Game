@@ -19,6 +19,9 @@ public:
 	// Sets default values for this character's properties
 	AProjectile();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 	//function to handle start of projectile motion
 	UFUNCTION()
 		void Start(APawn *parent, bool isRight, bool canLaunch = true);
@@ -49,9 +52,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		FVector offset;
 
+	//angle for launch
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float angle;
+
 	//x-velocity of projectile
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float xVelocity;
+
+	//z-velocity of projectile
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float zVelocity;
 
 	//toggle gravity scale on projectile
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -73,4 +84,6 @@ private:
 	FTimerHandle movementTimer;
 	APawn* parent;
 	bool canDelete;
+	bool moveRight;
+	bool isMoving;
 };
