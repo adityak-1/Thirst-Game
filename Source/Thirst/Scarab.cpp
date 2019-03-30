@@ -176,7 +176,7 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
 		currentBiting = false;
 		if (validBite) {
-			Cast<AFrog>(OtherActor)->Damage(5);
+			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
 			validBite = false;
 		}
 	}

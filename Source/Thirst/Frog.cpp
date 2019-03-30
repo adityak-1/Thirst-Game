@@ -176,8 +176,8 @@ void AFrog::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AFrog::MoveLeftRight(float dir)
 {
-	//disable left/right motion if performing dash or attack
-	if (isDash || isMelee || isRanged)
+	//disable left/right motion if performing other movement or attack
+	if (isDash || isBackstep || isStun || isMelee || isRanged)
 		return;
 
 	//add motion to player in X-axis based on selected direction
@@ -188,7 +188,7 @@ void AFrog::Dash()
 {
 	//disable multiple dashes while in the air
 	//also disable if doing backstep or attack
-	if (!dashAgain || isDash || isBackstep || isMelee || isRanged)
+	if (!dashAgain || isDash || isBackstep || isMelee || isRanged || isStun)
 		return;
 
 	//reduce player's water meter
@@ -273,7 +273,6 @@ void AFrog::ActivateMelee()
 {
 	//TODO activate melee hitbox
 	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
-	//ECollisionEnabled::Type Collision = ECollisionEnabled::QueryOnly;
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	CollisionBox->SetVisibility(true);
 
@@ -287,7 +286,6 @@ void AFrog::DeactivateMelee()
 {
 	//deactivate melee hitbox
 	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
-	//ECollisionEnabled::Type Collision = ECollisionEnabled::NoCollision;
 	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CollisionBox->SetVisibility(false);
 
@@ -353,12 +351,35 @@ void AFrog::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActo
 }
 
 //called when frog is hit by an enemy
-void AFrog::Damage(float damageTaken) {
+void AFrog::Damage(float damageTaken, float disp) {
+	//update player health
 	SetCurrentHealth(currentHealth - damageTaken);
 
 	//recoil back when damage is taken
+	ResetMovement();
+
+	//set stun flag to true
 	isStun = true;
+
+	//update player rotation so that player backsteps away from enemy
+	if (Controller != nullptr) {
+		Controller->SetControlRotation(FRotator(0.0f, (disp >= 0 ? 0.0f : 180.0f), 0.0f));
+	}
+
+	//backstep away from enemy
 	Backstep();
+}
+
+void AFrog::ResetMovement() {
+	//disable any existing movement timer
+	GetWorldTimerManager().ClearTimer(movementTimer);
+
+	//reset default player movements
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->JumpZVelocity = jumpZVelocity;
+	GetCharacterMovement()->GravityScale = gravityScale;
+	isBackstep = false;
+	isDash = false;
 }
 
 void AFrog::WellRestore(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {

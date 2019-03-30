@@ -40,6 +40,10 @@ public:
 	UFUNCTION()
 		void StopBackstep();
 
+	// function to reset movement flags
+	UFUNCTION()
+		void ResetMovement();
+
 	// functions to handle melee and ranged attacks
 	UFUNCTION()
 		void Melee();
@@ -74,7 +78,7 @@ public:
 		void OutShade(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
-		void Damage(float damageTaken);
+		void Damage(float damageTaken, float disp);
 
 	//delegate to handle when melee attack hits an enemy
 	UFUNCTION()
