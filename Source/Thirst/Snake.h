@@ -33,7 +33,7 @@ public:
 	UFUNCTION()
 		void StartLunge();
 	UFUNCTION()
-		void StopLunge();
+		void StopLunge(bool shouldRecoil = true);
 	UFUNCTION()
 		void ResetLunge();
 	UFUNCTION()
@@ -81,8 +81,8 @@ protected:
 
 private:
 	bool beginLunge;
+	bool inLunge;
 	bool endLunge;
 	FTimerHandle startTimer;
-	FTimerHandle endTimer;
 	FTimerHandle resetTimer;
 };

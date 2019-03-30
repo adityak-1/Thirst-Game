@@ -26,6 +26,7 @@ ASnake::ASnake() : AEnemy()
 	//set default values for flags
 	isRight = false;
 	beginLunge = false;
+	inLunge = false;
 	endLunge = false;
 }
 
@@ -59,6 +60,11 @@ void ASnake::Tick(float DeltaTime)
 	if (CanLunge()) {
 		//perform lunge
 		Lunge();
+	}
+	//check if snake has landed back on ground after lunge
+	else if (inLunge && GetCharacterMovement()->IsMovingOnGround()) {
+		//end lunge
+		StopLunge(false);
 	}
 	//slither if snake is not in middle of lunge
 	else if (canSlither) {
@@ -104,7 +110,7 @@ bool ASnake::CanLunge() {
 	float disp = GetPlayerDisp();
 
 	//return whether snake can perform lunge
-	return !beginLunge && !endLunge && GetCharacterMovement()->IsMovingOnGround() 
+	return !beginLunge && !inLunge && !endLunge && GetCharacterMovement()->IsMovingOnGround() 
 		&& abs(disp) <= visionDist && (isRight == (disp < 0));
 }
 
@@ -131,27 +137,19 @@ void ASnake::StartLunge() {
 	//begin movement for lunge
 	LaunchCharacter(FVector(lungeXVel * (isRight ? 1.0f : -1.0f), 0.0f, lungeZVel), true, true);
 
-	//wait for some time and stop lunge
-	GetWorld()->GetTimerManager().SetTimer(endTimer, this,
-		&ASnake::StopLunge, lungeDelay, false);
+	//set flag to indicate that lunge is in progress
+	inLunge = true;
 }
 
 void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
-	if (OtherActor == enemy && OtherComp->GetName() != "MeleeCollision") {
+	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
 		Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
 	}
 
 	if (OtherActor != this) {
 		//check whether snake is lunging
 		if (beginLunge) {
-			//update lunge flags
-			endLunge = true;
-			beginLunge = false;
-
-			//disable timed ending of lunge
-			GetWorldTimerManager().ClearTimer(endTimer);
-
 			//allow snake to recoil
 			StopLunge();
 		}
@@ -163,14 +161,19 @@ void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* Ot
 	}
 }
 
-void ASnake::StopLunge() {
+void ASnake::StopLunge(bool shouldRecoil) {
 	//update lunge flags
 	endLunge = true;
+	inLunge = false;
 	beginLunge = false;
 
-	//recoil backwards
+	//stop snake movement
 	GetCharacterMovement()->StopMovementImmediately();
-	LaunchCharacter(FVector(recoilVel * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
+
+	//recoil backwards as needed
+	if (shouldRecoil) {
+		LaunchCharacter(FVector(recoilVel * (isRight ? -1.0f : 1.0f), 0.0f, 0.0f), true, true);
+	}
 
 	//wait for some time and reset lunge
 	GetWorld()->GetTimerManager().SetTimer(resetTimer, this,
