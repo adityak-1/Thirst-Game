@@ -47,11 +47,6 @@ void ALizard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//if hit points go to or below 0, destroy this actor
-	if (hitPoints <= 0) {
-		this->Destroy();
-	}
-
 	//get X component of lizard velocity
 	float xVel = GetVelocity().X;
 

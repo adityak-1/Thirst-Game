@@ -32,7 +32,10 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//move logic to destroy enemy once projectiles finalized
+	//if hit points go to or below 0, destroy this actor
+	if (hitPoints <= 0) {
+		this->Destroy();
+	}
 }
 
 float AEnemy::GetPlayerDisp() {
