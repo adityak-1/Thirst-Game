@@ -21,7 +21,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+		void Attack();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	//time interval between attacks
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float attackInterval;
+
+private:
+	FTimerHandle intervalTimer;
 };
