@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Enemy.h"
+#include "Components/BoxComponent.h"
 #include "Boss.generated.h"
 
 /**
@@ -20,9 +21,16 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
+	//functions to handle boss attacks
 	UFUNCTION()
 		void Attack();
+	UFUNCTION()
+		void Thrust();
+	UFUNCTION()
+		void Claw();
+	UFUNCTION()
+		void ResetAttack();
 
 protected:
 	// Called when the game starts or when spawned
@@ -32,6 +40,23 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float attackInterval;
 
+	//projectile for ranged attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		TSubclassOf<class AProjectile> projectile;
+
+	//animation when boss is idle
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* idleAnim;
+
+	//animation when boss is attacking with thrust
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* thrustAnim;
+
+	//animation when boss is attacking with claw
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* clawAnim;
+
 private:
 	FTimerHandle intervalTimer;
+	UBoxComponent* attackBox;
 };
