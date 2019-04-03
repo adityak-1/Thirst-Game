@@ -6,6 +6,8 @@
 #include "Boss.h"
 #include "TimerManager.h"
 #include "PaperFlipbookComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Frog.h"
 
 // Sets default values
 ABoss::ABoss() : AEnemy()
@@ -24,7 +26,12 @@ void ABoss::BeginPlay()
 	//attach attack collision box to socket on sprite
 	attackBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
 	attackBox->AttachToComponent(GetSprite(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "collisionSocket");
+	attackBox->OnComponentBeginOverlap.AddDynamic(this, &ABoss::Collide);
 	attackBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	//activate collision capsule for boss boundary
+	UCapsuleComponent* capsule = GetCapsuleComponent();
+	capsule->OnComponentBeginOverlap.AddDynamic(this, &ABoss::Collide);
 
 	//delegate to handle reset of attack animation
 	GetSprite()->OnFinishedPlaying.AddDynamic(this, &ABoss::ResetAttack);
@@ -72,4 +79,14 @@ void ABoss::ResetAttack() {
 	GetSprite()->SetFlipbook(idleAnim);
 	GetSprite()->SetLooping(true);
 	GetSprite()->Play();
+}
+
+void ABoss::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	//check if player was hit
+	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
+		//disable attack collision box
+		attackBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		Cast<AFrog>(OtherActor)->Damage(5, 1.0f);
+	}
 }
