@@ -21,6 +21,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void Death();
+
 	// function to get displacement to player
 	UFUNCTION()
 		float GetPlayerDisp();

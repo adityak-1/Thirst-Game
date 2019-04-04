@@ -31,11 +31,16 @@ void AEnemy::BeginPlay()
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 	//if hit points go to or below 0, destroy this actor
 	if (hitPoints <= 0) {
+		Death();
 		this->Destroy();
 	}
+}
+
+void AEnemy::Death() {
+	
 }
 
 float AEnemy::GetPlayerDisp() {
