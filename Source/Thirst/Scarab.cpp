@@ -22,7 +22,8 @@ AScarab::AScarab() : AEnemy()
 	isRight = true;
 	isBiting = false;
 	currentBiting = false;
-	validBite = false;
+	validBite = true;
+	isFlying = false;
 }
 
 // Called when the game starts or when spawned
@@ -32,6 +33,7 @@ void AScarab::BeginPlay()
 
 	//get the collision box on the scarab
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->AttachToComponent(GetSprite(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_0");
 	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AScarab::Collide);
 }
 
@@ -43,38 +45,71 @@ void AScarab::Tick(float DeltaTime)
 	//get X component of scarab velocity
 	float xVel = GetVelocity().X;
 
-	//compute rotation for scarab to face correct direction
-	float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
-		GetControlRotation().Yaw);
+	if (isFlying) {
+		//compute rotation for scarab to face correct direction
+		float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
+			GetControlRotation().Yaw);
 
-	//rotate player based on direction of motion
-	SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
+		//rotate player based on direction of motion
+		SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
 
-	//current Biting = false;
-	if (!currentBiting)
-		isBiting = false;
-
-	//scarab has detected player
-	if (CanBite()) {
-		Bite();
-	}
-	//scarab does not find player
-	else {
-		//set next animation state
-		UPaperFlipbook* currAnim;
-
-		//set animation to hover
-		currAnim = hoverAnim;
-
-		//update player animation if incorrect
-		if (GetSprite()->GetFlipbook() != currAnim) {
-			GetSprite()->SetFlipbook(currAnim);
+		//scarab has detected player
+		if (CanBite()) {
+			Bite();
 		}
-		hover();
+		//scarab does not find player
+		else {
+			//set next animation state
+			UPaperFlipbook* currAnim;
+
+			//set animation to hover
+			currAnim = hoverAnim;
+
+			//update player animation if incorrect
+			if (GetSprite()->GetFlipbook() != currAnim) {
+				GetSprite()->SetFlipbook(currAnim);
+			}
+			Hover();
+		}
+	}
+	else {
+		if (CanSee()) {
+			//move up and play lift up animation
+			UPaperFlipbook* currAnim;
+
+			//set animation to hover
+			currAnim = liftUpAnim;
+
+			//update player animation if incorrect
+			if (GetSprite()->GetFlipbook() != currAnim) {
+				GetSprite()->SetFlipbook(currAnim);
+			}
+			LiftUp();	
+		}
+		// else stay there
 	}
 }
 
-void AScarab::hover() {
+void AScarab::Death()
+{
+	// Killing reward
+}
+
+void AScarab::LiftUp() {
+	AddMovementInput(FVector(0.0f, 0.0f, flyingHeight/13.0), 1.0f);
+
+	float currZ = GetCharacterMovement()->GetActorLocation().Z;
+
+	//get displacement from starting point
+	float dispZ = currZ - center.Z;
+
+	if (dispZ > flyingHeight) {
+		GetCharacterMovement()->StopMovementImmediately();
+		isFlying = true;
+	}
+}
+
+void AScarab::Hover() {
 
 	AddMovementInput(FVector(speedScale, 0.0f, 0.0f), (isRight ? 1.0f : -1.0f));
 
@@ -109,7 +144,7 @@ bool AScarab::CanSee() {
 
 void AScarab::Bite() {
 	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
-	AddMovementInput(FVector(speedScale, 0.0f, 0.0f), (isRight ? 1.0f : -1.0f));
+	AddMovementInput(FVector(speedScale/5.0, 0.0f, 0.0f), (isRight ? 1.0f : -1.0f));
 	if (!currentBiting) {
 		float disp = GetPlayerDisp();
 		if (disp < 0)
@@ -141,17 +176,11 @@ void AScarab::BiteEnd() {
 		isRight = true;
 
 	validBite = true;
-	/*GetCharacterMovement()->StopMovementImmediately();
-
-	//reset snake to slither animation with looping
-	GetSprite()->SetLooping(true);
-	GetSprite()->Play();
-	GetSprite()->SetFlipbook(hoverAnim);*/
 
 	currentBiting = false;
 
-	//GetWorld()->GetTimerManager().SetTimer(endTimer, this,
-		//&AScarab::resetBite, biteDelay, false);
+	GetWorld()->GetTimerManager().SetTimer(endTimer, this,
+		&AScarab::resetBite, biteDelay, false);
 }
 
 void AScarab::resetBite() {
@@ -169,7 +198,7 @@ void AScarab::resetBite() {
 void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
 	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-		currentBiting = false;
+		//currentBiting = false;
 		if (validBite) {
 			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
 			validBite = false;

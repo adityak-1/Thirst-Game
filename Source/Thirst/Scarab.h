@@ -22,13 +22,18 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void Death() override;
+
 	// function to handle scarab sliding
 	UFUNCTION()
-		void hover();
+		void Hover();
 
 	// functions to handle scarab bite
 	UFUNCTION()
 		bool CanBite();
+	UFUNCTION()
+		void LiftUp();
+
 	UFUNCTION()
 		void Bite();
 	UFUNCTION()
@@ -67,20 +72,26 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float biteDelay;
 
-	//animation when player is hovering
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float flyingHeight;
+
+	//animation when scarab is hovering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* hoverAnim;
 
-	//animation when player is bite
+	//animation when scarab is bite
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* biteAnim;
 
-	//attack
+	//animation when scarab is liftingUp
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* liftUpAnim;
 
 private:
 	bool isBiting;
 	bool currentBiting;
 	bool validBite;
+	bool isFlying;
 	FTimerHandle startTimer;
 	FTimerHandle endTimer;
 };
