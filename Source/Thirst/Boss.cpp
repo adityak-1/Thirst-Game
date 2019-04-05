@@ -2,12 +2,19 @@
 //File: Boss.cpp
 //
 //This file contains the AI functionality for the boss.
+//
+//References:
+//https://answers.unrealengine.com/questions/4912/bug-spawned-actor-works-differently-from-the-bluep.html
+//https://answers.unrealengine.com/questions/264977/how-to-use-fpthreadscriticalsection-make-data-thre.html
+//https://wiki.unrealengine.com/String_Conversions:_FString_to_FName,_FString_to_Int32,_Float_to_FString
+//http://api.unrealengine.com/INT/API/Runtime/Core/Math/FMath/RandRange/index.html
 
 #include "Boss.h"
 #include "TimerManager.h"
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Frog.h"
+#include "Engine.h"
 
 // Sets default values
 ABoss::ABoss() : AEnemy()
@@ -35,12 +42,15 @@ void ABoss::BeginPlay()
 
 	//delegate to handle reset of attack animation
 	GetSprite()->OnFinishedPlaying.AddDynamic(this, &ABoss::ResetAttack);
-}
 
-// Called every frame
-void ABoss::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	//initialize array that maintains scarabs
+	for (int i = 0; i < scarabRelLocation.Num(); i++) {
+		availablePos.Add(i);
+	}
+
+	//spawn a scarab in a fixed interval
+	GetWorld()->GetTimerManager().SetTimer(spawnTimer, this,
+		&ABoss::Spawn, spawnInterval, true);
 }
 
 void ABoss::Attack() {
@@ -89,4 +99,38 @@ void ABoss::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* Oth
 
 		Cast<AFrog>(OtherActor)->Damage(5, 1.0f);
 	}
+}
+
+void ABoss::Spawn() {
+	//lock this section so that array can be modified
+	FScopeLock ScopeLock(&m_mutex);
+
+	//spawn another scarab if max capacity has not been reached
+	if (availablePos.Num() > 0) {
+		//generate random index in array
+		int randInt = FMath::RandRange(0, availablePos.Num() - 1);
+
+		//get position at specified index
+		int spawnPos = availablePos[randInt];
+
+		//initialize parameters to spawn scarab
+		FActorSpawnParameters params;
+		params.Owner = this;
+		params.Name = FName(*FString::FromInt(spawnPos));
+
+		//remove selected position from array
+		availablePos.RemoveAt(randInt);
+
+		//spawn new scarab
+		GetWorld()->SpawnActor<AEnemy>(scarab, GetActorLocation() + scarabRelLocation[spawnPos],
+			GetActorRotation(), params)->SpawnDefaultController();
+	}
+}
+
+void ABoss::AddSpawnPoint(int pos) {
+	//lock this section so that array can be modified
+	FScopeLock ScopeLock(&m_mutex);
+
+	//add position to array of available positions
+	availablePos.AddUnique(pos);
 }

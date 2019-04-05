@@ -18,9 +18,6 @@ class THIRST_API ABoss : public AEnemy
 public:
 	// Sets default values for this character's properties
 	ABoss();
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 	
 	//functions to handle boss attacks
 	UFUNCTION()
@@ -34,6 +31,13 @@ public:
 	UFUNCTION()
 		void Collide(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	//function to handle scarab spawn
+	UFUNCTION()
+		void Spawn();
+
+	UFUNCTION()
+		void AddSpawnPoint(int pos);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -42,9 +46,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float attackInterval;
 
-	//projectile for ranged attack
+	//time interval between scarab spawns
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float spawnInterval;
+
+	//relative locations for scarab spawns
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
+		TArray<FVector> scarabRelLocation;
+
+	//scarab to spawn
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-		TSubclassOf<class AProjectile> projectile;
+		TSubclassOf<class AEnemy> scarab;
 
 	//animation when boss is idle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
@@ -60,5 +72,8 @@ protected:
 
 private:
 	FTimerHandle intervalTimer;
+	FTimerHandle spawnTimer;
 	UBoxComponent* attackBox;
+	TArray<int> availablePos;
+	FCriticalSection m_mutex;
 };

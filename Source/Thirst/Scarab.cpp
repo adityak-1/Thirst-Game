@@ -14,6 +14,7 @@
 #include "TimerManager.h"
 #include "Components/BoxComponent.h"
 #include "Frog.h"
+#include "Boss.h"
 
  // Sets default values
 AScarab::AScarab() : AEnemy()
@@ -92,6 +93,12 @@ void AScarab::Tick(float DeltaTime)
 
 void AScarab::Death()
 {
+	//check if boss spawned the scarab
+	if (GetOwner() != NULL && GetOwner()->IsA<ABoss>()) {
+		//add spawn point back for boss to reuse
+		Cast<ABoss>(GetOwner())->AddSpawnPoint(FCString::Atoi(*GetName()));
+	}
+
 	// Killing reward
 }
 
