@@ -27,7 +27,12 @@
 #include "Engine/World.h"
 #include "Projectile.h"
 #include "Well.h"
+#include "Runtime/Engine/Classes/GameFramework/GameModeBase.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "Runtime/Engine/Classes/GameFramework/PlayerStart.h"
 #include "Shade.h"
+
+#include "typeinfo.h"
 
 // Sets default values
 AFrog::AFrog()
@@ -86,6 +91,8 @@ void AFrog::BeginPlay()
 
 	currentHealth = maxHealth;
 	currentWater = maxWater;
+	numLives -= 1;
+	checkPoint = NULL;
 }
 
 // Called every frame
@@ -386,6 +393,7 @@ void AFrog::WellRestore(UPrimitiveComponent* OverlappedComponent, AActor* OtherA
 	if (OtherActor->IsA<AWell>()) {
 		SetCurrentWater(maxWater);
 		SetCurrentHealth(maxHealth);
+		checkPoint = OtherActor;
 	}
 }
 
@@ -404,5 +412,31 @@ void AFrog::OutShade(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UP
 //called when health <= 0
 //TODO go to death screen --> respawn at last checkpoint
 void AFrog::Die() {
-	Destroy();
+
+	if (numLives <= 0) {
+		Destroy();
+
+		//game over screen
+
+	}
+	else {
+		//death screen
+
+		GetCharacterMovement()->StopMovementImmediately();
+		
+		//restore health and water, reduce lives.
+		currentHealth = maxHealth;
+		currentWater = maxWater;
+		numLives -= 1;
+
+		//restart game
+		if (checkPoint == NULL) {
+			//restart at PlayerStart
+			GetWorld()->GetFirstPlayerController()->ClientSetLocation(GetWorld()->GetFirstPlayerController()->GetSpawnLocation(), FRotator());
+		}
+		else {
+			//restart at last check point
+			GetWorld()->GetFirstPlayerController()->ClientSetLocation(checkPoint->GetActorLocation(), FRotator());
+		}
+	}
 }
