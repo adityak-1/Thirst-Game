@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "PaperCharacter.h"
+#include "Enemy.h"
 #include "DropingWater.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class THIRST_API ADropingWater : public APaperCharacter
+class THIRST_API ADropingWater : public AEnemy
 {
 	GENERATED_BODY()
 	

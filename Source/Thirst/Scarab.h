@@ -87,6 +87,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* liftUpAnim;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rewarding")
+		TSubclassOf<class AEnemy> dropingWater;
+
 private:
 	bool isBiting;
 	bool currentBiting;

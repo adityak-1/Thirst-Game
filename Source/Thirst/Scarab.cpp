@@ -15,6 +15,7 @@
 #include "Components/BoxComponent.h"
 #include "Frog.h"
 #include "Boss.h"
+#include "DropingWater.h"
 
  // Sets default values
 AScarab::AScarab() : AEnemy()
@@ -98,8 +99,11 @@ void AScarab::Death()
 		//add spawn point back for boss to reuse
 		Cast<ABoss>(GetOwner())->AddSpawnPoint(FCString::Atoi(*GetName()));
 	}
-
-	// Killing reward
+	else {
+		// add Killing reward
+		GetWorld()->SpawnActor<AEnemy>(dropingWater, GetActorLocation(),
+			FRotator(), FActorSpawnParameters())->SpawnDefaultController();
+	}
 }
 
 void AScarab::LiftUp() {
