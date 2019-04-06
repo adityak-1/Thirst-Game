@@ -29,10 +29,7 @@
 #include "Well.h"
 #include "Runtime/Engine/Classes/GameFramework/GameModeBase.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
-#include "Runtime/Engine/Classes/GameFramework/PlayerStart.h"
 #include "Shade.h"
-
-#include "typeinfo.h"
 
 // Sets default values
 AFrog::AFrog()
@@ -407,6 +404,10 @@ void AFrog::OutShade(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UP
 	if (OtherActor->IsA<AShade>()) {
 		isShaded = false;
 	}
+}
+
+void AFrog::AddWater(float amount) {
+	currentWater += amount;
 }
 
 //called when health <= 0

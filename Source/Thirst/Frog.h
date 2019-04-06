@@ -88,6 +88,10 @@ public:
 	UFUNCTION()
 		void Die();
 
+	//function called when adding Water
+	UFUNCTION()
+		void AddWater(float amount);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
