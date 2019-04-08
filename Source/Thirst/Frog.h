@@ -92,6 +92,10 @@ public:
 	UFUNCTION()
 		void AddWater(float amount);
 
+	//function called when to respawn a new player
+	UFUNCTION()
+		void respawn();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -184,6 +188,21 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 		float tickHealth;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+		float respawnDelay;
+
+	//died screen
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> DiedWidget;
+
+	//game over screen
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> GameOverWidget;
+
+	//Won screen (killed the boss)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> WonWidget;
+
 	//water cost for melee
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 		float meleeWater;
@@ -245,5 +264,7 @@ private:
 
 	FTimerHandle movementTimer;
 	FTimerHandle attackTimer;
+	FTimerHandle respwanTimer;
 	AActor *checkPoint;
+	UUserWidget* displayWidget;
 };

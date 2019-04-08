@@ -30,6 +30,7 @@
 #include "Runtime/Engine/Classes/GameFramework/GameModeBase.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "Shade.h"
+#include "Runtime/UMG/Public/Blueprint/UserWidget.h"
 
 // Sets default values
 AFrog::AFrog()
@@ -413,31 +414,64 @@ void AFrog::AddWater(float amount) {
 //called when health <= 0
 //TODO go to death screen --> respawn at last checkpoint
 void AFrog::Die() {
+	//reMax health and water to avoid calling this function more than one time
+	currentHealth = maxHealth;
+	currentWater = maxWater;
 
 	if (numLives <= 0) {
-		Destroy();
-
 		//game over screen
+		if (GameOverWidget) // Check if the Asset is assigned in the blueprint.
+		{
+			// Create the widget and store it.
+			displayWidget = CreateWidget<UUserWidget>(GetWorld(), GameOverWidget);
 
+			// now you can use the widget directly since you have a referance for it.
+			// Extra check to  make sure the pointer holds the widget.
+			if (displayWidget)
+			{
+				//let add it to the view port
+				displayWidget->AddToViewport();
+			}
+		}
+
+		Destroy();
 	}
 	else {
 		//death screen
+		if (DiedWidget) // Check if the Asset is assigned in the blueprint.
+		{
+			// Create the widget and store it.
+			displayWidget = CreateWidget<UUserWidget>(GetWorld(), DiedWidget);
 
-		GetCharacterMovement()->StopMovementImmediately();
-		
-		//restore health and water, reduce lives.
-		currentHealth = maxHealth;
-		currentWater = maxWater;
-		numLives -= 1;
+			// now you can use the widget directly since you have a referance for it.
+			// Extra check to  make sure the pointer holds the widget.
+			if (displayWidget)
+			{
+				//let add it to the view port
+				displayWidget->AddToViewport();
+			}
+		}
 
-		//restart game
-		if (checkPoint == NULL) {
-			//restart at PlayerStart
-			GetWorld()->GetFirstPlayerController()->ClientSetLocation(GetWorld()->GetFirstPlayerController()->GetSpawnLocation(), FRotator());
-		}
-		else {
-			//restart at last check point
-			GetWorld()->GetFirstPlayerController()->ClientSetLocation(checkPoint->GetActorLocation(), FRotator());
-		}
+		//set timer to call respawn to avoid numlives change during displaying widget
+		GetWorld()->GetTimerManager().SetTimer(respwanTimer, this,
+			&AFrog::respawn, respawnDelay, false);
+	}
+}
+
+//function called when player died and having lives
+void AFrog::respawn() {
+	GetCharacterMovement()->StopMovementImmediately();
+
+	//restore health and water, reduce lives.
+	numLives -= 1;
+
+	//restart game
+	if (checkPoint == NULL) {
+		//restart at PlayerStart
+		GetWorld()->GetFirstPlayerController()->ClientSetLocation(GetWorld()->GetFirstPlayerController()->GetSpawnLocation(), FRotator());
+	}
+	else {
+		//restart at last check point
+		GetWorld()->GetFirstPlayerController()->ClientSetLocation(checkPoint->GetActorLocation(), FRotator());
 	}
 }
