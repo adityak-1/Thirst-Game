@@ -53,9 +53,17 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//scale for droping water heal
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
+		float healAmount;
+
 	//scale for scarab speed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float speedScale;
+
+	//scale for dropingwater drop speed
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float dropSpeedScale;
 
 	//radius that scarab can travel within
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -87,14 +95,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* liftUpAnim;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rewarding")
-		TSubclassOf<class AEnemy> dropingWater;
+	//animation when scarab is killed
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* dropingWaterAnim;
 
 private:
 	bool isBiting;
 	bool currentBiting;
 	bool validBite;
 	bool isFlying;
+	bool isKilled;
 	FTimerHandle startTimer;
 	FTimerHandle endTimer;
 };

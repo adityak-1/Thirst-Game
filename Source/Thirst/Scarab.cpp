@@ -15,7 +15,6 @@
 #include "Components/BoxComponent.h"
 #include "Frog.h"
 #include "Boss.h"
-#include "DropingWater.h"
 
  // Sets default values
 AScarab::AScarab() : AEnemy()
@@ -26,6 +25,7 @@ AScarab::AScarab() : AEnemy()
 	currentBiting = false;
 	validBite = true;
 	isFlying = false;
+	isKilled = false;
 }
 
 // Called when the game starts or when spawned
@@ -46,63 +46,79 @@ void AScarab::Tick(float DeltaTime)
 
 	//get X component of scarab velocity
 	float xVel = GetVelocity().X;
+	if (!isKilled) {
+		if (isFlying) {
+			//compute rotation for scarab to face correct direction
+			float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
+				GetControlRotation().Yaw);
 
-	if (isFlying) {
-		//compute rotation for scarab to face correct direction
-		float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
-			GetControlRotation().Yaw);
+			//rotate player based on direction of motion
+			SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
 
-		//rotate player based on direction of motion
-		SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
-
-		//scarab has detected player
-		if (CanBite()) {
-			Bite();
-		}
-		//scarab does not find player
-		else {
-			//set next animation state
-			UPaperFlipbook* currAnim;
-
-			//set animation to hover
-			currAnim = hoverAnim;
-
-			//update player animation if incorrect
-			if (GetSprite()->GetFlipbook() != currAnim) {
-				GetSprite()->SetFlipbook(currAnim);
+			//scarab has detected player
+			if (CanBite()) {
+				Bite();
 			}
-			Hover();
+			//scarab does not find player
+			else {
+				//set next animation state
+				UPaperFlipbook* currAnim;
+
+				//set animation to hover if is not killed
+				if (isKilled)
+					currAnim = dropingWaterAnim;
+				else
+					currAnim = hoverAnim;
+
+				//update player animation if incorrect
+				if (GetSprite()->GetFlipbook() != currAnim) {
+					GetSprite()->SetFlipbook(currAnim);
+				}
+				Hover();
+			}
+		}
+		else {
+			if (CanSee()) {
+				//move up and play lift up animation
+				UPaperFlipbook* currAnim;
+
+				//set animation to lift if is not killed
+				if (isKilled)
+					currAnim = dropingWaterAnim;
+				else
+					currAnim = liftUpAnim;
+
+				//update player animation if incorrect
+				if (GetSprite()->GetFlipbook() != currAnim) {
+					GetSprite()->SetFlipbook(currAnim);
+				}
+				LiftUp();
+			}
+			// else stay there
 		}
 	}
 	else {
-		if (CanSee()) {
-			//move up and play lift up animation
-			UPaperFlipbook* currAnim;
-
-			//set animation to hover
-			currAnim = liftUpAnim;
-
-			//update player animation if incorrect
-			if (GetSprite()->GetFlipbook() != currAnim) {
-				GetSprite()->SetFlipbook(currAnim);
-			}
-			LiftUp();	
-		}
-		// else stay there
+		//droping to the ground
+		AddMovementInput(FVector(0.0f, 0.0f, dropSpeedScale), -1.0f);
 	}
 }
 
 void AScarab::Death()
 {
+	//change hitpoints to avoid call death multi times
+	hitPoints = 2;
+
+	//set isKilled to true
+	isKilled = true;
+
+	//change animation and walking method
+	GetCharacterMovement()->StopMovementImmediately();
+	GetSprite()->SetFlipbook(dropingWaterAnim);
+
 	//check if boss spawned the scarab
 	if (GetOwner() != NULL && GetOwner()->IsA<ABoss>()) {
 		//add spawn point back for boss to reuse
 		Cast<ABoss>(GetOwner())->AddSpawnPoint(FCString::Atoi(*GetName()));
-	}
-	else {
-		// add Killing reward
-		//GetWorld()->SpawnActor<AEnemy>(dropingWater, GetActorLocation(),
-			//GetActorRotation(), FActorSpawnParameters())->SpawnDefaultController();
 	}
 }
 
@@ -163,7 +179,11 @@ void AScarab::Bite() {
 		else
 			isRight = true;
 		UPaperFlipbook* currAnim;
-		currAnim = biteAnim;
+		//set animation to biteAnim if not killed
+		if (isKilled)
+			currAnim = dropingWaterAnim;
+		else
+			currAnim = biteAnim;
 		if (GetSprite()->GetFlipbook() != currAnim) {
 			GetSprite()->SetFlipbook(currAnim);
 		}
@@ -201,22 +221,36 @@ void AScarab::resetBite() {
 	//reset snake to slither animation with looping
 	GetSprite()->SetLooping(true);
 	GetSprite()->Play();
-	GetSprite()->SetFlipbook(hoverAnim);
+	//set Animation to hoverAnimation if not killed
+	if (isKilled)
+		GetSprite()->SetFlipbook(dropingWaterAnim);
+	else
+		GetSprite()->SetFlipbook(hoverAnim);
 
 	currentBiting = false;
 }
 
 void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
-	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-		//currentBiting = false;
-		if (validBite) {
-			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
-			validBite = false;
+	if (!isKilled) {
+		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
+			//currentBiting = false;
+			if (validBite) {
+				Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
+				validBite = false;
+			}
+		}
+
+		if (OtherActor == this) {
+			isRight = !isRight;
+		}
+	}
+	else {
+		if (OtherActor == enemy) {
+			//player add CurrentWater
+			((AFrog*)OtherActor)->AddWater(healAmount);
+			this->Destroy();
 		}
 	}
 
-	if (OtherActor == this) {
-		isRight = !isRight;
-	}
 }
