@@ -462,16 +462,16 @@ void AFrog::Die() {
 void AFrog::respawn() {
 	GetCharacterMovement()->StopMovementImmediately();
 
-	//restore health and water, reduce lives.
+	//reduce lives.
 	numLives -= 1;
 
 	//restart game
 	if (checkPoint == NULL) {
 		//restart at PlayerStart
-		GetWorld()->GetFirstPlayerController()->ClientSetLocation(GetWorld()->GetFirstPlayerController()->GetSpawnLocation(), FRotator());
+		GetWorld()->GetFirstPlayerController()->ClientSetLocation(GetWorld()->GetFirstPlayerController()->GetSpawnLocation(), FRotator(0.0f, 0.0f, 0.0f));
 	}
 	else {
 		//restart at last check point
-		GetWorld()->GetFirstPlayerController()->ClientSetLocation(checkPoint->GetActorLocation(), FRotator());
+		GetWorld()->GetFirstPlayerController()->ClientSetLocation(checkPoint->GetActorLocation(), FRotator(0.0f, 0.0f, 0.0f));
 	}
 }
