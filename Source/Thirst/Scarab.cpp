@@ -101,8 +101,8 @@ void AScarab::Death()
 	}
 	else {
 		// add Killing reward
-		GetWorld()->SpawnActor<AEnemy>(dropingWater, GetActorLocation(),
-			FRotator(), FActorSpawnParameters())->SpawnDefaultController();
+		//GetWorld()->SpawnActor<AEnemy>(dropingWater, GetActorLocation(),
+			//GetActorRotation(), FActorSpawnParameters())->SpawnDefaultController();
 	}
 }
 
