@@ -35,7 +35,9 @@ void AEnemy::Tick(float DeltaTime)
 	//if hit points go to or below 0, destroy this actor
 	if (hitPoints <= 0) {
 		Death();
-		this->Destroy();
+		SetActorEnableCollision(false);
+		SetActorHiddenInGame(true);
+		//this->Destroy();
 	}
 }
 
