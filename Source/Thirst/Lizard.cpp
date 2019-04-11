@@ -118,19 +118,28 @@ void ALizard::Attack() {
 	GetSprite()->SetFlipbook(currIdle);
 
 	//select attack to make
-	int randInt = FMath::RandRange(0, 1);
+	float disp = GetPlayerDisp();
 
-	FunctionPtr ptr = (randInt == 0) ? &ALizard::Spit :
-		(hasSpear ? &ALizard::Spear : 
-		(hasDagger ? &ALizard::Dagger : &ALizard::Spit));
+	FunctionPtr ptr = hasSpear ? &ALizard::Spear :
+		&ALizard::Dagger;
 
 	//wait for some time and start attack
 	GetWorld()->GetTimerManager().SetTimer(startTimer, this,
 		ptr, attackDelay, false);
 }
 
-void ALizard::Spit() {
-	//initialize parameters for projectile spawn
+void ALizard::SpitStart() {
+	GetSprite()->SetLooping(false);
+	GetSprite()->SetFlipbook(startAcidAnim);
+
+	//wait for some time, finish acid attack
+	GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::SpitFinish, acidTime, false);
+}
+
+void ALizard::SpitFinish() {	//initialize parameters for projectile spawn
+	GetSprite()->SetFlipbook(endAcidAnim);
+
 	FActorSpawnParameters params;
 	params.Owner = this;
 
@@ -149,9 +158,11 @@ void ALizard::Spear() {
 	//select dash or throw
 	int randInt = FMath::RandRange(0, 1);
 
+	float disp = GetPlayerDisp();
+
 	//dash with spear
-	if (randInt == 0) {
-		Dash();
+	if (disp < longRange) {
+		DashStart();
 	}
 	//throw spear
 	else {
@@ -185,27 +196,59 @@ void ALizard::ThrowSpear() {
 }
 
 void ALizard::Dagger() {
-	//dash with dagger
-	Dash();
+	//select attack to make
+	float disp = GetPlayerDisp();
+
+	FunctionPtr ptr = (disp > longRange) ? &ALizard::DashStart :
+		(disp > midRange) ? &ALizard::SpitStart :
+		&ALizard::StabStart;
+
+	//wait for some time and start attack
+	GetWorld()->GetTimerManager().SetTimer(startTimer, this,
+		ptr, attackDelay, false);
 }
 
-void ALizard::Dash() {
-	//enable collision box for weapon
+void ALizard::StabStart() {
+	//update animation to stab
+	GetSprite()->SetFlipbook(stabAnim);
+
+	//wait for some time, end animation
+	GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::StabFinish, stabTime, false);
+}
+
+void ALizard::StabFinish() {
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
 	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
+	//wait for some time, end animation
+	GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::ResetAttack, resetDelay, false);
+}
+
+void ALizard::DashStart() {
 	//select correct dash animation
 	UPaperFlipbook* currDash = hasSpear ? dashSpearAnim : dashDaggerAnim;
 
 	//update animation to dash
 	GetSprite()->SetFlipbook(currDash);
 
+	//wait for some time, end animation
+	GetWorldTimerManager().SetTimer(resetTimer, this,
+		&ALizard::DashFinish, dashTime, false);
+}
+
+void ALizard::DashFinish() {
+	//enable collision box for weapon
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
 	//begin movement for dash
 	LaunchCharacter(FVector(dashVel * (isRight ? 1.0f : -1.0f), 0.0f, 0.0f), true, true);
 
 	//wait for some time, end animation
 	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::ResetAttack, dashTime, false);
+		&ALizard::ResetAttack, resetDelay, false);
 }
 
 void ALizard::Recoil() {
@@ -258,7 +301,7 @@ void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 
 void ALizard::WeaponCollide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
-	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
+	if (OtherActor == enemy && OtherComp->GetName() == "CapsuleComponent") {
 		Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
 	}
 

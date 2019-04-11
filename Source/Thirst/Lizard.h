@@ -35,7 +35,9 @@ public:
 	UFUNCTION()
 		void Attack();
 	UFUNCTION()
-		void Spit();
+		void SpitStart();
+	UFUNCTION()
+		void SpitFinish();
 	UFUNCTION()
 		void Spear();
 	UFUNCTION()
@@ -43,7 +45,13 @@ public:
 	UFUNCTION()
 		void Dagger();
 	UFUNCTION()
-		void Dash();
+		void DashStart();
+	UFUNCTION()
+		void DashFinish();
+	UFUNCTION()
+		void StabStart();
+	UFUNCTION()
+		void StabFinish();
 	UFUNCTION()
 		void Recoil();
 	UFUNCTION()
@@ -109,6 +117,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float dashTime;
 
+	//time for lizard stab
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float stabTime;
+
+	//time for acid attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float acidTime;
+
+	//Variables to decide which attack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float longRange;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float midRange;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float shortRange;
+
 	//animation when lizard is idle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* idleAnim;
@@ -156,6 +180,18 @@ protected:
 	//animation when lizard completes spear throw
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* endThrowAnim;
+
+	//animation when lizard starts acid spit
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* startAcidAnim;
+
+	//animation when lizard completes acid spit
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* endAcidAnim;
+
+	//animation when lizard stabs with dagger
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* stabAnim;
 
 private:
 	bool isAttack;
