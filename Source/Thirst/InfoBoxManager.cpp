@@ -21,14 +21,75 @@ void AInfoBoxManager::BeginPlay()
 	//get reference to player
 	player = GetWorld()->GetFirstPlayerController()->GetPawn();
 
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Sign1")));
-	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AInfoBoxManager::DisplayBox);
+	//starting info box has input
+	widgets.Add(NULL);
 
-	CreateWidget<UUserWidget>(GetWorld(), startBox)->AddToViewport();
+	//declare variables
+	FString boxName;
+	UBoxComponent* collisionBox;
+
+	//initialize array that maintains info box widgets
+	for (int i = 1; i < infoBoxes.Num(); i++) {
+		//get corresponding collision box
+		boxName = "Sign" + FString::FromInt(i);
+		collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(*boxName));
+
+		//create overlap trigger to display box
+		collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AInfoBoxManager::DisplayBox);
+
+		//info box has input and only appears once in game
+		if (infoBoxInput[i]) {
+			widgets.Add(NULL);
+		}
+		else {
+			//spawn widget ahead of time
+			widgets.Add(CreateWidget<UUserWidget>(GetWorld(), infoBoxes[i]));
+
+			//create end overlap trigger to hide box
+			collisionBox->OnComponentEndOverlap.AddDynamic(this, &AInfoBoxManager::HideBox);
+		}
+	}
+
+	//display initial spawn info box
+	CreateWidget<UUserWidget>(GetWorld(), infoBoxes[0])->AddToViewport();
 }
 
 void AInfoBoxManager::DisplayBox(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (OtherActor == player && OtherComp->GetName() == "CollisionCylinder") {
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "display sign");
+		//get collision box name
+		FString boxName = OverlappedComp->GetName();
+
+		//get index of widget from collision box
+		int index = FCString::Atoi(*boxName.RightChop(4));
+
+		//info box has input
+		if (infoBoxInput[index]) {
+			//info box should only appear once, so disable collision box
+			OverlappedComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+			//spawn info box in game
+			CreateWidget<UUserWidget>(GetWorld(), infoBoxes[index])->AddToViewport();
+		}
+		else {
+			//set visibility since widget already exists
+			widgets[index]->AddToViewport();
+		}
+
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "show" + FString::FromInt(index));
+	}
+}
+
+void AInfoBoxManager::HideBox(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	if (OtherActor == player && OtherComp->GetName() == "CollisionCylinder") {
+		//get collision box name
+		FString boxName = OverlappedComp->GetName();
+
+		//get index of widget from collision box
+		int index = FCString::Atoi(*boxName.RightChop(4));
+
+		//hide info box widget
+		widgets[index]->RemoveFromViewport();
+
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "hide" + FString::FromInt(index));
 	}
 }
