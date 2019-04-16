@@ -43,7 +43,10 @@ void AInfoBoxManager::BeginPlay()
 		}
 		else {
 			//spawn widget ahead of time
-			widgets.Add(CreateWidget<UUserWidget>(GetWorld(), infoBoxes[i]));
+			UUserWidget *widgetPtr = CreateWidget<UUserWidget>(GetWorld(), infoBoxes[i]);
+			widgetPtr->AddToViewport();
+			widgetPtr->SetVisibility(ESlateVisibility::Collapsed);
+			widgets.Add(widgetPtr);
 
 			//create end overlap trigger to hide box
 			collisionBox->OnComponentEndOverlap.AddDynamic(this, &AInfoBoxManager::HideBox);
@@ -72,7 +75,7 @@ void AInfoBoxManager::DisplayBox(class UPrimitiveComponent* OverlappedComp, clas
 		}
 		else {
 			//set visibility since widget already exists
-			widgets[index]->AddToViewport();
+			widgets[index]->SetVisibility(ESlateVisibility::Visible);
 		}
 
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "show" + FString::FromInt(index));
@@ -88,7 +91,7 @@ void AInfoBoxManager::HideBox(class UPrimitiveComponent* OverlappedComp, class A
 		int index = FCString::Atoi(*boxName.RightChop(4));
 
 		//hide info box widget
-		widgets[index]->RemoveFromViewport();
+		widgets[index]->SetVisibility(ESlateVisibility::Collapsed);
 
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "hide" + FString::FromInt(index));
 	}
