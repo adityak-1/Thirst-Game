@@ -15,11 +15,9 @@ public:
 	// Sets default values for this actor's properties
 	AInfoBoxManager();
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	//get distance to player
-	float GetPlayerDisp();
+	//function for scarab to make damage
+	UFUNCTION()
+		void DisplayBox(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 protected:
 	// Called when the game starts or when spawned

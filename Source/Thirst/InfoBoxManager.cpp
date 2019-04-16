@@ -4,13 +4,13 @@
 #include "UserWidget.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/BoxComponent.h"
 #include "Engine.h"
 
 // Sets default values
 AInfoBoxManager::AInfoBoxManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 // Called when the game starts or when spawned
@@ -21,18 +21,14 @@ void AInfoBoxManager::BeginPlay()
 	//get reference to player
 	player = GetWorld()->GetFirstPlayerController()->GetPawn();
 
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Sign1")));
+	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AInfoBoxManager::DisplayBox);
+
 	CreateWidget<UUserWidget>(GetWorld(), startBox)->AddToViewport();
 }
 
-// Called every frame
-void AInfoBoxManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%f"), GetPlayerDisp()));
-}
-
-float AInfoBoxManager::GetPlayerDisp() {
-	//return displacement
-	return player->GetActorLocation().X - GetActorLocation().X;
+void AInfoBoxManager::DisplayBox(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	if (OtherActor == player && OtherComp->GetName() == "CollisionCylinder") {
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "display sign");
+	}
 }
