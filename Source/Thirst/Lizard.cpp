@@ -301,7 +301,7 @@ void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 
 void ALizard::WeaponCollide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
-	if (OtherActor == enemy && OtherComp->GetName() == "CapsuleComponent") {
+	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
 		Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
 	}
 
