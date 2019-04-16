@@ -160,10 +160,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float rangedEndlag;
 
-	//number of lives
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
-		int numLives;
-
 	//max health
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 		float maxHealth;

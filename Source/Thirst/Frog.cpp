@@ -89,7 +89,6 @@ void AFrog::BeginPlay()
 
 	currentHealth = maxHealth;
 	currentWater = maxWater;
-	numLives -= 1;
 	checkPoint = NULL;
 }
 
@@ -418,52 +417,29 @@ void AFrog::Die() {
 	currentHealth = maxHealth;
 	currentWater = maxWater;
 
-	if (numLives <= 0) {
-		//game over screen
-		if (GameOverWidget) // Check if the Asset is assigned in the blueprint.
+	//death screen
+	if (DiedWidget) // Check if the Asset is assigned in the blueprint.
+	{
+		// Create the widget and store it.
+		displayWidget = CreateWidget<UUserWidget>(GetWorld(), DiedWidget);
+
+		// now you can use the widget directly since you have a referance for it.
+		// Extra check to  make sure the pointer holds the widget.
+		if (displayWidget)
 		{
-			// Create the widget and store it.
-			displayWidget = CreateWidget<UUserWidget>(GetWorld(), GameOverWidget);
-
-			// now you can use the widget directly since you have a referance for it.
-			// Extra check to  make sure the pointer holds the widget.
-			if (displayWidget)
-			{
-				//let add it to the view port
-				displayWidget->AddToViewport();
-			}
+			//let add it to the view port
+			displayWidget->AddToViewport();
 		}
-
-		Destroy();
 	}
-	else {
-		//death screen
-		if (DiedWidget) // Check if the Asset is assigned in the blueprint.
-		{
-			// Create the widget and store it.
-			displayWidget = CreateWidget<UUserWidget>(GetWorld(), DiedWidget);
 
-			// now you can use the widget directly since you have a referance for it.
-			// Extra check to  make sure the pointer holds the widget.
-			if (displayWidget)
-			{
-				//let add it to the view port
-				displayWidget->AddToViewport();
-			}
-		}
-
-		//set timer to call respawn to avoid numlives change during displaying widget
-		GetWorld()->GetTimerManager().SetTimer(respwanTimer, this,
-			&AFrog::respawn, respawnDelay, false);
-	}
+	//set timer to call respawn
+	GetWorld()->GetTimerManager().SetTimer(respwanTimer, this,
+		&AFrog::respawn, respawnDelay, false);
 }
 
 //function called when player died and having lives
 void AFrog::respawn() {
 	GetCharacterMovement()->StopMovementImmediately();
-
-	//reduce lives.
-	numLives -= 1;
 
 	//restart game
 	if (checkPoint == NULL) {
