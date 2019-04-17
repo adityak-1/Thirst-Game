@@ -31,6 +31,13 @@ public:
 	// functions to handle scarab bite
 	UFUNCTION()
 		bool CanBite();
+
+	UFUNCTION()
+		void Born();
+
+	UFUNCTION()
+		void BornHelper();
+
 	UFUNCTION()
 		void LiftUp();
 
@@ -39,7 +46,10 @@ public:
 	UFUNCTION()
 		void BiteEnd();
 	UFUNCTION()
-		void resetBite();
+		void ResetBite();
+
+	UFUNCTION()
+		void DeathToWater();
 
 	// functions to handle scarab see
 	UFUNCTION()
@@ -72,16 +82,33 @@ protected:
 	//distance that scarab can see ahead
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float visionDist;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float visionHeight;
 
 	//distance that scarab can bite
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float biteDist;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float biteHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float biteDelay;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float resetBiteDelay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float bornDelay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float deathDelay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float flyingHeight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float biteAdjustment;
 
 	//animation when scarab is hovering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
@@ -91,20 +118,31 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* biteAnim;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* postBiteAnim;
+
 	//animation when scarab is liftingUp
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* liftUpAnim;
+
+	//animation when scarab is liftingUp
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* deathAnim;
 
 	//animation when scarab is killed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* dropingWaterAnim;
 
 private:
+	bool isBorning;
 	bool isBiting;
-	bool currentBiting;
-	bool validBite;
+	bool isPostBiting;
+	bool isBiteDelaying;
 	bool isFlying;
+	bool isFlyingUp;
 	bool isKilled;
-	FTimerHandle startTimer;
-	FTimerHandle endTimer;
+	float biteDispX, biteDispZ;
+	FTimerHandle bornDelayTimer;
+	FTimerHandle biteDelayTimer;
+	FTimerHandle deathDelayTimer;
 };

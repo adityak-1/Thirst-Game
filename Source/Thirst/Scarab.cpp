@@ -22,9 +22,11 @@ AScarab::AScarab() : AEnemy()
 	//set default values for flags
 	isRight = true;
 	isBiting = false;
-	currentBiting = false;
-	validBite = true;
+	isBorning = false;
+	isPostBiting = false;
+	isBiteDelaying = false;
 	isFlying = false;
+	isFlyingUp = false;
 	isKilled = false;
 }
 
@@ -35,7 +37,6 @@ void AScarab::BeginPlay()
 
 	//get the collision box on the scarab
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-	collisionBox->AttachToComponent(GetSprite(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, "Socket_0");
 	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &AScarab::Collide);
 }
 
@@ -44,76 +45,100 @@ void AScarab::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//get X component of scarab velocity
-	float xVel = GetVelocity().X;
 	if (!isKilled) {
-		if (isFlying) {
-			//compute rotation for scarab to face correct direction
-			float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
-				GetControlRotation().Yaw);
 
-			//rotate player based on direction of motion
-			SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
+		if (!isFlyingUp) {
 
-			//scarab has detected player
-			if (CanBite()) {
-				Bite();
-			}
-			//scarab does not find player
-			else {
-				//set next animation state
-				UPaperFlipbook* currAnim;
+			if (!isBiting) {
 
-				//set animation to hover if is not killed
-				if (isKilled)
-					currAnim = dropingWaterAnim;
-				else
-					currAnim = hoverAnim;
+				if (isFlying) {
+					if (CanBite()) {
+						if (isBiteDelaying) {
+							//get X component of scarab velocity
+							float xVel = GetVelocity().X;
+							//compute rotation for scarab to face correct direction
+							float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
+								GetControlRotation().Yaw);
 
-				//update player animation if incorrect
-				if (GetSprite()->GetFlipbook() != currAnim) {
-					GetSprite()->SetFlipbook(currAnim);
+							//rotate player based on direction of motion
+							SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
+
+							Hover();
+						}
+						else {
+							GetCharacterMovement()->StopMovementImmediately();
+							biteDispX = GetActorLocation().X - enemy->GetActorLocation().X;
+							biteDispZ = GetActorLocation().Z - enemy->GetActorLocation().Z;
+							isBiting = true;
+							Bite();
+						}
+					}
+					else {
+						//get X component of scarab velocity
+						float xVel = GetVelocity().X;
+						//compute rotation for scarab to face correct direction
+						float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
+							GetControlRotation().Yaw);
+
+						//rotate player based on direction of motion
+						SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
+
+						Hover();
+					}
 				}
-				Hover();
+				else {
+					//born and fly
+					if (CanSee()) {
+						isBorning = true;
+						Born();
+					}
+					//else stay there
+				}
 			}
+			else {
+				//bite and postBite
+				if (!isPostBiting) {
+					Bite();
+				}
+				else {
+					BiteEnd();
+				}
+			}
+			
 		}
 		else {
-			if (CanSee()) {
-				//move up and play lift up animation
-				UPaperFlipbook* currAnim;
-
-				//set animation to lift if is not killed
-				if (isKilled)
-					currAnim = dropingWaterAnim;
-				else
-					currAnim = liftUpAnim;
-
-				//update player animation if incorrect
-				if (GetSprite()->GetFlipbook() != currAnim) {
-					GetSprite()->SetFlipbook(currAnim);
-				}
+			//born and fly
+			if (isBorning) {
+				Born();
+			}
+			else {
+				//flyingUp
 				LiftUp();
 			}
-			// else stay there
 		}
+		
 	}
 	else {
-		//droping to the ground
-		AddMovementInput(FVector(0.0f, 0.0f, dropSpeedScale), -1.0f);
+		//if it become a water droping to the ground
+		if (GetSprite()->GetFlipbook() == dropingWaterAnim)
+			AddMovementInput(FVector(0.0f, 0.0f, dropSpeedScale), -1.0f);
 	}
 }
 
 void AScarab::Death()
 {
 	//change hitpoints to avoid call death multi times
-	hitPoints = 2;
+	hitPoints = 1000;
 
 	//set isKilled to true
 	isKilled = true;
 
 	//change animation and walking method
 	GetCharacterMovement()->StopMovementImmediately();
-	GetSprite()->SetFlipbook(dropingWaterAnim);
+	GetSprite()->SetFlipbook(deathAnim);
+
+	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
+		&AScarab::DeathToWater, deathDelay, false);
 
 	//check if boss spawned the scarab
 	if (GetOwner() != NULL && GetOwner()->IsA<ABoss>()) {
@@ -122,21 +147,61 @@ void AScarab::Death()
 	}
 }
 
+void AScarab::DeathToWater() {
+	GetSprite()->SetFlipbook(dropingWaterAnim);
+}
+
+void AScarab::Born() {
+	isFlyingUp = true;
+
+	/*//play born animation
+	UPaperFlipbook* currAnim;
+	currAnim = BornAnim;
+
+	//update player animation if incorrect
+	if (GetSprite()->GetFlipbook() != currAnim) {
+		GetSprite()->SetFlipbook(currAnim);
+	}
+	
+	//after born, flying to the air
+	GetWorld()->GetTimerManager().SetTimer(bornDelayTimer, this,
+		&AScarab::BornHelper, bornDelay, false);*/
+	BornHelper();
+}
+
+void AScarab::BornHelper() {
+	isBorning = false;
+}
+
 void AScarab::LiftUp() {
-	AddMovementInput(FVector(0.0f, 0.0f, flyingHeight/13.0), 1.0f);
 
+	UPaperFlipbook* currAnim;
+	currAnim = liftUpAnim;
+
+	//update player animation if incorrect
+	if (GetSprite()->GetFlipbook() != currAnim) {
+		GetSprite()->SetFlipbook(currAnim);
+	}
+
+	AddMovementInput(FVector(0.0f, 0.0f, flyingHeight / 13.0), 1.0f);
 	float currZ = GetCharacterMovement()->GetActorLocation().Z;
-
 	//get displacement from starting point
 	float dispZ = currZ - center.Z;
-
+	
 	if (dispZ > flyingHeight) {
 		GetCharacterMovement()->StopMovementImmediately();
 		isFlying = true;
+		isFlyingUp = false;
 	}
 }
 
 void AScarab::Hover() {
+
+	UPaperFlipbook* currAnim;
+	currAnim = hoverAnim;
+	if (GetSprite()->GetFlipbook() != currAnim) {
+		GetSprite()->SetFlipbook(currAnim);
+	}
 
 	AddMovementInput(FVector(speedScale, 0.0f, 0.0f), (isRight ? 1.0f : -1.0f));
 
@@ -157,88 +222,81 @@ void AScarab::Hover() {
 
 bool AScarab::CanBite() {
 	//get displacement to player
-	float disp = GetPlayerDisp();
+	float currX = GetCharacterMovement()->GetActorLocation().X;
+	float dispX = currX - enemy->GetActorLocation().X;
 
-	return abs(disp) <= biteDist && (isRight != (disp < 0));
+	float currZ = GetCharacterMovement()->GetActorLocation().Z;
+	float dispZ = currZ - enemy->GetActorLocation().Z;
+
+	return abs(dispX) <= biteDist && isRight == (dispX < 0) && abs(dispZ) <= biteHeight;
 }
 
 bool AScarab::CanSee() {
 	//get displacement to player
-	float disp = GetPlayerDisp();
+	float currX = GetCharacterMovement()->GetActorLocation().X;
+	float dispX = currX - enemy->GetActorLocation().X;
 
-	return abs(disp) <= visionDist;
+	float currZ = GetCharacterMovement()->GetActorLocation().Z;
+	float dispZ = currZ - enemy->GetActorLocation().Z;
+
+	return abs(dispX) <= visionDist && abs(dispZ) <= visionHeight;
 }
 
 void AScarab::Bite() {
-	SetActorRotation(FRotator(0.0f, (isRight ? 180.0f : 0.0f), 0.0f));
-	AddMovementInput(FVector(speedScale/5.0, 0.0f, 0.0f), (isRight ? 1.0f : -1.0f));
-	if (!currentBiting) {
-		float disp = GetPlayerDisp();
-		if (disp < 0)
-			isRight = false;
-		else
-			isRight = true;
-		UPaperFlipbook* currAnim;
-		//set animation to biteAnim if not killed
-		if (isKilled)
-			currAnim = dropingWaterAnim;
-		else
-			currAnim = biteAnim;
-		if (GetSprite()->GetFlipbook() != currAnim) {
-			GetSprite()->SetFlipbook(currAnim);
-		}
+	
+	AddMovementInput(FVector(-biteDispX/6, 0.0f, -biteDispZ/6), 1.0f);
 
-		//update scarab to face player
-		isBiting = true;
-		currentBiting = true;
-		GetWorld()->GetTimerManager().SetTimer(startTimer, this,
-			&AScarab::BiteEnd, biteDelay, false);
+	//get X component of scarab velocity
+	float xVel = GetVelocity().X;
+	//compute rotation for scarab to face correct direction
+	float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
+		GetControlRotation().Yaw);
+
+	//rotate player based on direction of motion
+	SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
+
+	UPaperFlipbook* currAnim;
+	currAnim = biteAnim;
+	if (GetSprite()->GetFlipbook() != currAnim) {
+		GetSprite()->SetFlipbook(currAnim);
+	}
+
+	if (GetCharacterMovement()->GetActorLocation().Z - enemy -> GetActorLocation().Z < biteAdjustment) {
+		GetCharacterMovement()->StopMovementImmediately();
+		isPostBiting = true;
 	}
 }
 
 void AScarab::BiteEnd() {
-	currentBiting = false;
-	isRight = !isRight;
+	AddMovementInput(FVector(-biteDispX/6, 0.0f, biteDispZ/6), 1.0f);
+	UPaperFlipbook* currAnim;
+	currAnim = postBiteAnim;
+	if (GetSprite()->GetFlipbook() != currAnim) {
+		GetSprite()->SetFlipbook(currAnim);
+	}
 
-	float disp = GetPlayerDisp();
-	if (disp < 0)
-		isRight = false;
-	else
-		isRight = true;
-
-	validBite = true;
-
-	currentBiting = false;
-
-	GetWorld()->GetTimerManager().SetTimer(endTimer, this,
-		&AScarab::resetBite, biteDelay, false);
+	if ((GetCharacterMovement()->GetActorLocation().Z - center.Z) > flyingHeight) {
+		GetCharacterMovement()->StopMovementImmediately();
+		isBiting = false;
+		isPostBiting = false;
+		isBiteDelaying = true;
+		GetWorld()->GetTimerManager().SetTimer(biteDelayTimer, this,
+			&AScarab::ResetBite, resetBiteDelay, false);
+	}
 }
 
-void AScarab::resetBite() {
-
-	GetCharacterMovement()->StopMovementImmediately();
-
-	//reset snake to slither animation with looping
-	GetSprite()->SetLooping(true);
-	GetSprite()->Play();
-	//set Animation to hoverAnimation if not killed
-	if (isKilled)
-		GetSprite()->SetFlipbook(dropingWaterAnim);
-	else
-		GetSprite()->SetFlipbook(hoverAnim);
-
-	currentBiting = false;
+void AScarab::ResetBite() {
+	isBiteDelaying = false;
 }
 
 void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
 	if (!isKilled) {
 		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-			//currentBiting = false;
-			if (validBite) {
-				Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
-				validBite = false;
-			}
+			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
+			if (isBiting)
+				GetCharacterMovement()->StopMovementImmediately();
+				isPostBiting = true;
 		}
 
 		if (OtherActor == this) {
@@ -247,9 +305,11 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 	}
 	else {
 		if (OtherActor == enemy) {
-			//player add CurrentWater
-			((AFrog*)OtherActor)->AddWater(healAmount);
-			this->Destroy();
+			//after death animation played to add CurrentWater
+			if (GetSprite()->GetFlipbook() == dropingWaterAnim) {
+				((AFrog*)OtherActor)->AddWater(healAmount);
+				this->Destroy();
+			}
 		}
 	}
 
