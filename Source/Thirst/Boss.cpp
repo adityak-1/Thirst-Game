@@ -19,6 +19,8 @@
 // Sets default values
 ABoss::ABoss() : AEnemy()
 {
+	//set gravity to 0 so that boss stays in place
+	GetCharacterMovement()->GravityScale = 0;
 }
 
 // Called when the game starts or when spawned

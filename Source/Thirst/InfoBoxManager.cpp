@@ -5,7 +5,6 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/BoxComponent.h"
-#include "Engine.h"
 
 // Sets default values
 AInfoBoxManager::AInfoBoxManager()
@@ -77,8 +76,6 @@ void AInfoBoxManager::DisplayBox(class UPrimitiveComponent* OverlappedComp, clas
 			//set visibility since widget already exists
 			widgets[index]->SetVisibility(ESlateVisibility::Visible);
 		}
-
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "show" + FString::FromInt(index));
 	}
 }
 
@@ -92,7 +89,5 @@ void AInfoBoxManager::HideBox(class UPrimitiveComponent* OverlappedComp, class A
 
 		//hide info box widget
 		widgets[index]->SetVisibility(ESlateVisibility::Collapsed);
-
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "hide" + FString::FromInt(index));
 	}
 }
