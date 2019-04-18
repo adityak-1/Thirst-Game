@@ -22,6 +22,7 @@ ALizard::ALizard() : AEnemy()
 	//set default values for flags
 	isRight = false;
 	isAttack = false;
+	isKilled = false;
 }
 
 // Called when the game starts or when spawned
@@ -47,32 +48,59 @@ void ALizard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//get X component of lizard velocity
-	float xVel = GetVelocity().X;
+	if (!isKilled) {
+		//get X component of lizard velocity
+		float xVel = GetVelocity().X;
 
-	//lizard can attack
-	if (CanAttack()) {
-		Attack();
-	}
-	//lizard not near player to attack
-	else if (!isAttack) {
-		//compute rotation for lizard to face correct direction
-		float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
-			GetControlRotation().Yaw);
-
-		//rotate player based on direction of motion
-		SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
-
-		//select correct walk animation
-		UPaperFlipbook* currWalk = hasSpear ? walkSpearAnim : (hasDagger ? walkDaggerAnim : walkAnim);
-
-		//update animation to walk if not already as such
-		if (GetSprite()->GetFlipbook() != currWalk) {
-			GetSprite()->SetFlipbook(currWalk);
+		//lizard can attack
+		if (CanAttack()) {
+			Attack();
 		}
+		//lizard not near player to attack
+		else if (!isAttack) {
+			//compute rotation for lizard to face correct direction
+			float yawAngle = (xVel > 0.0f) ? 180.0f : ((xVel < 0.0f) ? 0.0f :
+				GetControlRotation().Yaw);
 
-		Walk();
+			//rotate player based on direction of motion
+			SetActorRotation(FRotator(0.0f, yawAngle, 0.0f));
+
+			//select correct walk animation
+			UPaperFlipbook* currWalk = hasSpear ? walkSpearAnim : (hasDagger ? walkDaggerAnim : walkAnim);
+
+			//update animation to walk if not already as such
+			if (GetSprite()->GetFlipbook() != currWalk) {
+				GetSprite()->SetFlipbook(currWalk);
+			}
+
+			Walk();
+		}
 	}
+}
+
+void ALizard::Death() {
+	//change hitpoints to avoid call death multi times
+	hitPoints = 1000;
+
+	//set isKilled to true
+	isKilled = true;
+
+	//change animation and walking method
+	GetCharacterMovement()->StopMovementImmediately();
+	GetSprite()->SetFlipbook(deathAnim);
+
+	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
+		&ALizard::DeathHelper, 1.15, false);
+}
+
+void ALizard::DeathHelper() {
+	GetSprite()->SetFlipbook(deathStillAnim);
+	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
+		&ALizard::DeathHelperHelper, deathDelay, false);
+}
+
+void ALizard::DeathHelperHelper() {
+	this->Destroy();
 }
 
 void ALizard::Walk() {
@@ -129,47 +157,54 @@ void ALizard::Attack() {
 }
 
 void ALizard::SpitStart() {
-	GetSprite()->SetLooping(false);
-	GetSprite()->SetFlipbook(startAcidAnim);
+	if (!isKilled) {
+		GetSprite()->SetLooping(false);
+		GetSprite()->SetFlipbook(startAcidAnim);
 
-	//wait for some time, finish acid attack
-	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::SpitFinish, acidTime, false);
+		//wait for some time, finish acid attack
+		GetWorldTimerManager().SetTimer(resetTimer, this,
+			&ALizard::SpitFinish, acidTime, false);
+	}
 }
 
 void ALizard::SpitFinish() {	//initialize parameters for projectile spawn
-	GetSprite()->SetFlipbook(endAcidAnim);
+	if (!isKilled) {
+		GetSprite()->SetFlipbook(endAcidAnim);
 
-	FActorSpawnParameters params;
-	params.Owner = this;
+		FActorSpawnParameters params;
+		params.Owner = this;
 
-	//spawn projectile
-	AProjectile* acidBall = GetWorld()->SpawnActor<AProjectile>(projectile, GetActorLocation(), GetActorRotation(), params);
+		//spawn projectile
+		AProjectile* acidBall = GetWorld()->SpawnActor<AProjectile>(projectile, GetActorLocation(), GetActorRotation(), params);
 
-	//allow the projectile to move
-	acidBall->Start(this, isRight);
+		//allow the projectile to move
+		acidBall->Start(this, isRight);
 
-	//wait for some time, end animation
-	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::ResetAttack, resetDelay, false);
+		//wait for some time, end animation
+		GetWorldTimerManager().SetTimer(resetTimer, this,
+			&ALizard::ResetAttack, resetDelay, false);
+	}
 }
 
 void ALizard::Spear() {
-	//select dash or throw
-	int randInt = FMath::RandRange(0, 1);
 
-	float disp = GetPlayerDisp();
+	if (!isKilled) {
+		//select dash or throw
+		int randInt = FMath::RandRange(0, 1);
 
-	//dash with spear
-	if (disp < longRange) {
-		DashStart();
-	}
-	//throw spear
-	else {
-		GetSprite()->SetLooping(false);
-		GetSprite()->SetFlipbook(startThrowAnim);
+		float disp = GetPlayerDisp();
 
-		hasSpear = false;
+		//dash with spear
+		if (disp < longRange) {
+			DashStart();
+		}
+		//throw spear
+		else {
+			GetSprite()->SetLooping(false);
+			GetSprite()->SetFlipbook(startThrowAnim);
+
+			hasSpear = false;
+		}
 	}
 }
 
@@ -196,59 +231,70 @@ void ALizard::ThrowSpear() {
 }
 
 void ALizard::Dagger() {
-	//select attack to make
-	float disp = GetPlayerDisp();
 
-	FunctionPtr ptr = (disp > longRange) ? &ALizard::DashStart :
-		(disp > midRange) ? &ALizard::SpitStart :
-		&ALizard::StabStart;
+	if (!isKilled) {
+		//select attack to make
+		float disp = GetPlayerDisp();
 
-	//wait for some time and start attack
-	GetWorld()->GetTimerManager().SetTimer(startTimer, this,
-		ptr, attackDelay, false);
+		FunctionPtr ptr = (disp > longRange) ? &ALizard::DashStart :
+			(disp > midRange) ? &ALizard::SpitStart :
+			&ALizard::StabStart;
+
+		//wait for some time and start attack
+		GetWorld()->GetTimerManager().SetTimer(startTimer, this,
+			ptr, attackDelay, false);
+	}
 }
 
 void ALizard::StabStart() {
-	//update animation to stab
-	GetSprite()->SetFlipbook(stabAnim);
+	if (!isKilled) {
+		//update animation to stab
+		GetSprite()->SetFlipbook(stabAnim);
 
-	//wait for some time, end animation
-	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::StabFinish, stabTime, false);
+		//wait for some time, end animation
+		GetWorldTimerManager().SetTimer(resetTimer, this,
+			&ALizard::StabFinish, stabTime, false);
+	}
 }
 
 void ALizard::StabFinish() {
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	if (!isKilled) {
+		UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+		collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	//wait for some time, end animation
-	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::ResetAttack, resetDelay, false);
+		//wait for some time, end animation
+		GetWorldTimerManager().SetTimer(resetTimer, this,
+			&ALizard::ResetAttack, resetDelay, false);
+	}
 }
 
 void ALizard::DashStart() {
-	//select correct dash animation
-	UPaperFlipbook* currDash = hasSpear ? dashSpearAnim : dashDaggerAnim;
+	if (!isKilled) {
+		//select correct dash animation
+		UPaperFlipbook* currDash = hasSpear ? dashSpearAnim : dashDaggerAnim;
 
-	//update animation to dash
-	GetSprite()->SetFlipbook(currDash);
+		//update animation to dash
+		GetSprite()->SetFlipbook(currDash);
 
-	//wait for some time, end animation
-	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::DashFinish, dashTime, false);
+		//wait for some time, end animation
+		GetWorldTimerManager().SetTimer(resetTimer, this,
+			&ALizard::DashFinish, dashTime, false);
+	}
 }
 
 void ALizard::DashFinish() {
-	//enable collision box for weapon
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	if (!isKilled) {
+		//enable collision box for weapon
+		UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+		collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	//begin movement for dash
-	LaunchCharacter(FVector(dashVel * (isRight ? 1.0f : -1.0f), 0.0f, 0.0f), true, true);
+		//begin movement for dash
+		LaunchCharacter(FVector(dashVel * (isRight ? 1.0f : -1.0f), 0.0f, 0.0f), true, true);
 
-	//wait for some time, end animation
-	GetWorldTimerManager().SetTimer(resetTimer, this,
-		&ALizard::ResetAttack, resetDelay, false);
+		//wait for some time, end animation
+		GetWorldTimerManager().SetTimer(resetTimer, this,
+			&ALizard::ResetAttack, resetDelay, false);
+	}
 }
 
 void ALizard::Recoil() {
@@ -267,35 +313,40 @@ void ALizard::Recoil() {
 }
 
 void ALizard::ResetAttack() {
-	//disable collision box for weapon
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (!isKilled) {
+		//disable collision box for weapon
+		UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+		collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	//reset attack flag to false
-	isAttack = false;
+		//reset attack flag to false
+		isAttack = false;
 
-	//select correct idle animation
-	UPaperFlipbook* currIdle = hasSpear ? idleSpearAnim : (hasDagger ? idleDaggerAnim : idleAnim);
+		//select correct idle animation
+		UPaperFlipbook* currIdle = hasSpear ? idleSpearAnim : (hasDagger ? idleDaggerAnim : idleAnim);
 
-	//reset animation settings
-	GetSprite()->SetFlipbook(currIdle);
-	GetSprite()->SetLooping(true);
-	GetSprite()->Play();
+		//reset animation settings
+		GetSprite()->SetFlipbook(currIdle);
+		GetSprite()->SetLooping(true);
+		GetSprite()->Play();
+	}
 }
 
 void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	//check if player was hit
-	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-		Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
+	//check if this object is killed
+	if (!isKilled) {
+		//check if player was hit
+		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
+			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
 
-		//disable timed ending of attack
-		GetWorldTimerManager().ClearTimer(resetTimer);
+			//disable timed ending of attack
+			GetWorldTimerManager().ClearTimer(resetTimer);
 
-		ResetAttack();
-	}
-	else if (OtherActor != this && !OtherActor->IsA<AProjectile>()) {
-		//flip direction of lizard
-		isRight = !isRight;
+			ResetAttack();
+		}
+		else if (OtherActor != this && !OtherActor->IsA<AProjectile>()) {
+			//flip direction of lizard
+			isRight = !isRight;
+		}
 	}
 }
 

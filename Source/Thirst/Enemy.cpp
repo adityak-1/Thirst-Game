@@ -8,6 +8,8 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 #include "Scarab.h"
+#include "Snake.h"
+#include "Lizard.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -36,7 +38,7 @@ void AEnemy::Tick(float DeltaTime)
 	//if hit points go to or below 0, destroy this actor
 	if (hitPoints <= 0) {
 		//check if enemy is a scarab
-		if(this->IsA<AScarab>())
+		if(this->IsA<AScarab>()||this->IsA<ASnake>()||this->IsA<ALizard>())
 			Death();
 		else
 			this->Destroy();

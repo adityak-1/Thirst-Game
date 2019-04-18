@@ -21,6 +21,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void Death() override;
+
+	UFUNCTION()
+		void DeathHelper();
+
+	UFUNCTION()
+		void DeathHelperHelper();
+
 	// function to handle snake slither
 	UFUNCTION()
 		void Slither();
@@ -71,6 +79,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float recoilVel;
 
+	//delay time for death
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float deathDelay;
+
 	//animation when player is slithering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* slitherAnim;
@@ -79,10 +91,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* lungeAnim;
 
+	//animation for death
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* deathAnim;
+
+	//animation for death
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* deathStillAnim;
+
 private:
 	bool beginLunge;
 	bool inLunge;
 	bool endLunge;
+	bool isKilled;
 	FTimerHandle startTimer;
 	FTimerHandle resetTimer;
+	FTimerHandle deathDelayTimer;
 };

@@ -25,6 +25,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void Death() override;
+
+	UFUNCTION()
+		void DeathHelper();
+
+	UFUNCTION()
+		void DeathHelperHelper();
+
 	// function to handle lizard walk
 	UFUNCTION()
 		void Walk();
@@ -125,6 +133,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float acidTime;
 
+	//delay time for death
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float deathDelay;
+
 	//Variables to decide which attack
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 		float longRange;
@@ -193,8 +205,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* stabAnim;
 
+	//animation for death
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* deathAnim;
+
+	//animation for death
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* deathStillAnim;
+
 private:
 	bool isAttack;
+	bool isKilled;
 	FTimerHandle startTimer;
 	FTimerHandle resetTimer;
+	FTimerHandle deathDelayTimer;
 };
