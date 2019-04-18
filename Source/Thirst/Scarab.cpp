@@ -69,6 +69,7 @@ void AScarab::Tick(float DeltaTime)
 							GetCharacterMovement()->StopMovementImmediately();
 							biteDispX = GetActorLocation().X - enemy->GetActorLocation().X;
 							biteDispZ = GetActorLocation().Z - enemy->GetActorLocation().Z;
+							targetZ = enemy->GetActorLocation().Z;
 							isBiting = true;
 							Bite();
 						}
@@ -261,7 +262,7 @@ void AScarab::Bite() {
 		GetSprite()->SetFlipbook(currAnim);
 	}
 
-	if (GetCharacterMovement()->GetActorLocation().Z - enemy -> GetActorLocation().Z < biteAdjustment) {
+	if (GetCharacterMovement()->GetActorLocation().Z - targetZ < biteAdjustment) {
 		GetCharacterMovement()->StopMovementImmediately();
 		isPostBiting = true;
 	}
@@ -294,9 +295,10 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 	if (!isKilled) {
 		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
 			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
-			if (isBiting)
+			if (isBiting) {
 				GetCharacterMovement()->StopMovementImmediately();
 				isPostBiting = true;
+			}
 		}
 
 		if (OtherActor == this) {
