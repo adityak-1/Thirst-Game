@@ -142,6 +142,7 @@ private:
 	bool isFlyingUp;
 	bool isKilled;
 	float biteDispX, biteDispZ;
+	float targetZ;
 	FTimerHandle bornDelayTimer;
 	FTimerHandle biteDelayTimer;
 	FTimerHandle deathDelayTimer;
