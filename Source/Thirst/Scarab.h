@@ -24,6 +24,9 @@ public:
 
 	virtual void Death() override;
 
+	UFUNCTION()
+		void DeathHelper();
+
 	// function to handle scarab sliding
 	UFUNCTION()
 		void Hover();
@@ -110,6 +113,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float biteAdjustment;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float BossScarabRewardTime;
+
 	//animation when scarab is hovering
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* hoverAnim;
@@ -137,13 +143,16 @@ private:
 	bool isBorning;
 	bool isBiting;
 	bool isPostBiting;
+	bool isPostBitingCalled;
 	bool isBiteDelaying;
 	bool isFlying;
 	bool isFlyingUp;
 	bool isKilled;
 	float biteDispX, biteDispZ;
 	float targetZ;
+	float targetX;
 	FTimerHandle bornDelayTimer;
 	FTimerHandle biteDelayTimer;
 	FTimerHandle deathDelayTimer;
+	FTimerHandle deathHelperTimer;
 };

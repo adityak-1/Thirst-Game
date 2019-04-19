@@ -28,6 +28,7 @@ AScarab::AScarab() : AEnemy()
 	isFlying = false;
 	isFlyingUp = false;
 	isKilled = false;
+	isPostBitingCalled = false;
 }
 
 // Called when the game starts or when spawned
@@ -70,6 +71,7 @@ void AScarab::Tick(float DeltaTime)
 							biteDispX = GetActorLocation().X - enemy->GetActorLocation().X;
 							biteDispZ = GetActorLocation().Z - enemy->GetActorLocation().Z;
 							targetZ = enemy->GetActorLocation().Z;
+							targetX = enemy->GetActorLocation().X;
 							isBiting = true;
 							Bite();
 						}
@@ -101,6 +103,10 @@ void AScarab::Tick(float DeltaTime)
 				if (!isPostBiting) {
 					Bite();
 				}
+				else if(!isPostBitingCalled) {
+					GetCharacterMovement()->StopMovementImmediately();
+					BiteEnd();
+				}
 				else {
 					BiteEnd();
 				}
@@ -121,8 +127,10 @@ void AScarab::Tick(float DeltaTime)
 	}
 	else {
 		//if it become a water droping to the ground
-		if (GetSprite()->GetFlipbook() == dropingWaterAnim)
+		if (GetSprite()->GetFlipbook() == dropingWaterAnim) {
 			AddMovementInput(FVector(0.0f, 0.0f, dropSpeedScale), -1.0f);
+
+		}
 	}
 }
 
@@ -143,9 +151,16 @@ void AScarab::Death()
 
 	//check if boss spawned the scarab
 	if (GetOwner() != NULL && GetOwner()->IsA<ABoss>()) {
-		//add spawn point back for boss to reuse
-		Cast<ABoss>(GetOwner())->AddSpawnPoint(FCString::Atoi(*GetName()));
+		GetWorld()->GetTimerManager().SetTimer(deathHelperTimer, this,
+			&AScarab::DeathHelper, BossScarabRewardTime, false);
 	}
+}
+
+void AScarab::DeathHelper() {
+	//add spawn point back for boss to reuse
+	Cast<ABoss>(GetOwner())->AddSpawnPoint(FCString::Atoi(*GetName()));
+	//destory current object
+	this->Destroy();
 }
 
 void AScarab::DeathToWater() {
@@ -266,9 +281,16 @@ void AScarab::Bite() {
 		GetCharacterMovement()->StopMovementImmediately();
 		isPostBiting = true;
 	}
+
+	if (abs(GetCharacterMovement()->GetActorLocation().Z - targetX) < 10) {
+		GetCharacterMovement()->StopMovementImmediately();
+		isPostBiting = true;
+	}
 }
 
 void AScarab::BiteEnd() {
+	if(!isPostBitingCalled)
+		isPostBitingCalled = true;
 	AddMovementInput(FVector(-biteDispX/6, 0.0f, biteDispZ/6), 1.0f);
 	UPaperFlipbook* currAnim;
 	currAnim = postBiteAnim;
@@ -276,10 +298,11 @@ void AScarab::BiteEnd() {
 		GetSprite()->SetFlipbook(currAnim);
 	}
 
-	if ((GetCharacterMovement()->GetActorLocation().Z - center.Z) > flyingHeight) {
+	if ((GetCharacterMovement()->GetActorLocation().Z - center.Z) > flyingHeight || GetVelocity().Z < 0) {
 		GetCharacterMovement()->StopMovementImmediately();
 		isBiting = false;
 		isPostBiting = false;
+		isPostBitingCalled = false;
 		isBiteDelaying = true;
 		GetWorld()->GetTimerManager().SetTimer(biteDelayTimer, this,
 			&AScarab::ResetBite, resetBiteDelay, false);
@@ -310,7 +333,9 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 			//after death animation played to add CurrentWater
 			if (GetSprite()->GetFlipbook() == dropingWaterAnim) {
 				((AFrog*)OtherActor)->AddWater(healAmount);
-				this->Destroy();
+				if (GetOwner() != NULL && GetOwner()->IsA<ABoss>()) {
+					DeathHelper();
+				}
 			}
 		}
 	}
