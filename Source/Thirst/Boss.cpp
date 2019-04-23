@@ -99,7 +99,7 @@ void ABoss::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* Oth
 		//disable attack collision box
 		attackBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		Cast<AFrog>(OtherActor)->Damage(5, 1.0f);
+		Cast<AFrog>(OtherActor)->Damage(15, 1.0f);
 	}
 }
 
