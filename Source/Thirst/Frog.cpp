@@ -408,6 +408,9 @@ void AFrog::OutShade(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UP
 
 void AFrog::AddWater(float amount) {
 	currentWater += amount;
+	if (currentWater > maxWater) {
+		currentWater = maxWater;
+	}
 }
 
 //called when health <= 0

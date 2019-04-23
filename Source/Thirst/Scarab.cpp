@@ -150,15 +150,17 @@ void AScarab::Death()
 		&AScarab::DeathToWater, deathDelay, false);
 
 	//check if boss spawned the scarab
+	/*
 	if (GetOwner() != NULL && GetOwner()->IsA<ABoss>()) {
 		GetWorld()->GetTimerManager().SetTimer(deathHelperTimer, this,
 			&AScarab::DeathHelper, BossScarabRewardTime, false);
 	}
+	*/
 }
 
 void AScarab::DeathHelper() {
 	//add spawn point back for boss to reuse
-	Cast<ABoss>(GetOwner())->AddSpawnPoint(FCString::Atoi(*GetName()));
+	//Cast<ABoss>(GetOwner())->AddSpawnPoint(FCString::Atoi(*GetName()));
 	//destory current object
 	this->Destroy();
 }
@@ -334,8 +336,10 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 			if (GetSprite()->GetFlipbook() == dropingWaterAnim) {
 				((AFrog*)OtherActor)->AddWater(healAmount);
 				if (GetOwner() != NULL && GetOwner()->IsA<ABoss>()) {
-					DeathHelper();
+					Cast<ABoss>(GetOwner())->AddSpawnPoint(FCString::Atoi(*GetName()));
+					//DeathHelper();
 				}
+				DeathHelper();
 			}
 		}
 	}

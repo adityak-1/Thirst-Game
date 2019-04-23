@@ -89,6 +89,10 @@ void ALizard::Death() {
 	GetCharacterMovement()->StopMovementImmediately();
 	GetSprite()->SetFlipbook(deathAnim);
 
+	//turn off attack hitbox
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
 		&ALizard::DeathHelper, 1.15, false);
 }
@@ -352,15 +356,16 @@ void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 
 void ALizard::WeaponCollide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
-	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-		Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
+	if (OtherActor->IsA<AFrog>() && OtherComp->GetName() == "CollisionCylinder") {
+		Cast<AFrog>(OtherActor)->Damage(10, GetPlayerDisp());
 	}
 
 	if (OtherActor != this) {
 		//disable timed ending of attack
-		GetWorldTimerManager().ClearTimer(resetTimer);
+		//GetWorldTimerManager().ClearTimer(resetTimer);
 
 		//allow lizard to recoil
-		Recoil();
+		//Recoil();
+		//ResetAttack();
 	}
 }

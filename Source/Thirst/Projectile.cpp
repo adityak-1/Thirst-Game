@@ -126,7 +126,7 @@ void AProjectile::Collide(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 
 		//apply damage to other actor
 		if (OtherActor->IsA<AFrog>()) {
-			Cast<AFrog>(OtherActor)->Damage(5, (moveRight ? -1.0f : 1.0f));
+			Cast<AFrog>(OtherActor)->Damage(projectileDamage, (moveRight ? -1.0f : 1.0f));
 		}
 		else if (OtherActor->IsA<AEnemy>()) {
 			Cast<AEnemy>(OtherActor)->Damage(1);
