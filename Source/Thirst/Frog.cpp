@@ -12,6 +12,7 @@
 //https://api.unrealengine.com/INT/API/Runtime/Engine/GameFramework/UNavMovementComponent/index.html
 //https://www.youtube.com/watch?v=xXG-fYzpSW4&index=8&list=PLZlv_N0_O1gYup-gvJtMsgJqnEB_dGiM4
 //https://www.youtube.com/watch?time_continue=3&v=Z-mbe4k5Wa4
+//http://bendemott.blogspot.com/2016/10/unreal-4-playing-sound-from-c-with.html
 //UE4 Template: SideScroller2DCharacter.h, SideScroller2DCharacter.cpp
 
 #include "Frog.h"
@@ -31,6 +32,7 @@
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "Shade.h"
 #include "Runtime/UMG/Public/Blueprint/UserWidget.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values
 AFrog::AFrog()
@@ -86,6 +88,10 @@ void AFrog::BeginPlay()
 	UBoxComponent* ShadeBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
 	ShadeBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::InShade);
 	ShadeBox->OnComponentEndOverlap.AddDynamic(this, &AFrog::OutShade);
+
+	//initialize audio component for player sound effects
+	audioComponent = Cast<UAudioComponent>(GetDefaultSubobjectByName(TEXT("Audio")));
+	audioComponent->bAutoActivate = false;
 
 	currentHealth = maxHealth;
 	currentWater = maxWater;
@@ -266,6 +272,10 @@ void AFrog::Melee()
 
 	//reduce player's water meter
 	currentWater -= meleeWater;
+
+	//play melee sound
+	audioComponent->SetSound(meleeSound);
+	audioComponent->Play();
 
 	//wait for some time, activate hitbox
 	GetWorldTimerManager().SetTimer(attackTimer, this,

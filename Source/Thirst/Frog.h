@@ -255,6 +255,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* rangedAnim;
 
+	//sound when player is performing melee
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+		class USoundBase* meleeSound;
+
 private:
 	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded, isStun;
 
@@ -263,4 +267,5 @@ private:
 	FTimerHandle respwanTimer;
 	AActor *checkPoint;
 	UUserWidget* displayWidget;
+	UAudioComponent* audioComponent;
 };
