@@ -69,7 +69,9 @@ public:
 
 	//fully restore health and water when player overlaps well
 	UFUNCTION()
-		void WellRestore(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+		void InWell(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UFUNCTION()
+		void OutWell(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	//prevent passive water loss when shaded
 	UFUNCTION()
@@ -264,7 +266,7 @@ protected:
 		class USoundBase* rangedSound;
 
 private:
-	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded, isStun;
+	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded, isWell, isStun;
 
 	FTimerHandle movementTimer;
 	FTimerHandle attackTimer;

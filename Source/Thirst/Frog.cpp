@@ -64,6 +64,7 @@ AFrog::AFrog()
 	isMelee = false;
 	isRanged = false;
 	isShaded = false;
+	isWell = false;
 	isStun = false;
 }
 
@@ -82,7 +83,8 @@ void AFrog::BeginPlay()
 	//TODO make this work with capsule so we don't have to use an absurd extra collision box
 	//Delegate for handling Well overlap
 	UBoxComponent* WellBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
-	WellBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::WellRestore);
+	WellBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::InWell);
+	WellBox->OnComponentEndOverlap.AddDynamic(this, &AFrog::OutWell);
 
 	//Delegates for handling when player enters and exits shade
 	UBoxComponent* ShadeBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
@@ -103,7 +105,7 @@ void AFrog::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (!isShaded) {
+	if (!isShaded && !isWell) {
 		currentWater -= tickWater;
 	}
 
@@ -400,11 +402,18 @@ void AFrog::ResetMovement() {
 	isDash = false;
 }
 
-void AFrog::WellRestore(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
+void AFrog::InWell(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
 	if (OtherActor->IsA<AWell>()) {
+		isWell = true;
 		SetCurrentWater(maxWater);
 		SetCurrentHealth(maxHealth);
 		checkPoint = OtherActor;
+	}
+}
+
+void AFrog::OutWell(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	if (OtherActor->IsA<AWell>()) {
+		isWell = false;
 	}
 }
 
@@ -467,4 +476,8 @@ void AFrog::respawn() {
 		//restart at last check point
 		GetWorld()->GetFirstPlayerController()->ClientSetLocation(checkPoint->GetActorLocation(), FRotator(0.0f, 0.0f, 0.0f));
 	}
+
+	//reset health and water back to maximum
+	currentHealth = maxHealth;
+	currentWater = maxWater;
 }
