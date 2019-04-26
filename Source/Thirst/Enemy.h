@@ -39,6 +39,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 		int hitPoints;
 
+	//sound when enemy is hit
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+		class USoundBase* hitSound;
+
 	//starting position of enemy
 	FVector center;
 
@@ -47,4 +51,6 @@ protected:
 
 	//flag for if enemy is facing right
 	bool isRight;
+
+	UAudioComponent* audioComponent;
 };

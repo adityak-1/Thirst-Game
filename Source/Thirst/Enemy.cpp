@@ -10,6 +10,7 @@
 #include "Scarab.h"
 #include "Snake.h"
 #include "Lizard.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -28,6 +29,10 @@ void AEnemy::BeginPlay()
 
 	//set enemy to target player
 	enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	//initialize audio component for enemy sound effects
+	audioComponent = Cast<UAudioComponent>(GetDefaultSubobjectByName(TEXT("Audio")));
+	audioComponent->bAutoActivate = false;
 }
 
 // Called every frame
@@ -59,5 +64,9 @@ float AEnemy::GetPlayerDisp() {
 
 //called when an attack hits the enemy
 void AEnemy::Damage(int damageTaken) {
+	//play hit sound
+	audioComponent->SetSound(hitSound);
+	audioComponent->Play();
+
 	hitPoints -= damageTaken;
 }
