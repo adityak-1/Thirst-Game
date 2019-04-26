@@ -326,6 +326,10 @@ void AFrog::Ranged()
 	//reduce player's water meter
 	currentWater -= rangedWater;
 
+	//play ranged sound
+	audioComponent->SetSound(rangedSound);
+	audioComponent->Play();
+
 	//wait for some time, spawn projectile
 	GetWorldTimerManager().SetTimer(attackTimer, this,
 		&AFrog::ActivateRanged, rangedStartup, false);

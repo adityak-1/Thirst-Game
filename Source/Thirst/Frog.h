@@ -259,6 +259,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
 		class USoundBase* meleeSound;
 
+	//sound when player is performing ranged
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+		class USoundBase* rangedSound;
+
 private:
 	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded, isStun;
 
