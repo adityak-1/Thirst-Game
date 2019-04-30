@@ -3,6 +3,7 @@
 #include "Egg.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "PaperFlipbookComponent.h"
 #include "Engine/World.h"
 
 AEgg::AEgg()
@@ -15,7 +16,7 @@ void AEgg::BeginPlay() {
 	GetSprite()->SetFlipbook(beforeHatchAnim);
 }
 
-void AEgg::hatch() {
+void AEgg::Hatch() {
 	GetSprite()->SetLooping(false);
 	GetSprite()->Play();
 	GetSprite()->SetFlipbook(hatchAnim);

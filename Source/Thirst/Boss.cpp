@@ -21,6 +21,8 @@ ABoss::ABoss() : AEnemy()
 {
 	//set gravity to 0 so that boss stays in place
 	GetCharacterMovement()->GravityScale = 0;
+
+	numScarabs = 0;
 }
 
 // Called when the game starts or when spawned
@@ -48,6 +50,15 @@ void ABoss::BeginPlay()
 	//initialize array that maintains scarabs
 	for (int i = 0; i < scarabRelLocation.Num(); i++) {
 		availablePos.Add(i);
+
+		//initialize parameters to spawn egg
+		FActorSpawnParameters params;
+		params.Owner = this;
+		FVector location = scarabRelLocation[i] + FVector(0.0f, 1.0f, 0.0f);
+
+		//spawn new egg
+		eggs.Add(GetWorld()->SpawnActor<AEgg>(egg, GetActorLocation() + location, 
+			GetActorRotation(), params));
 	}
 
 	//spawn a scarab in a fixed interval
@@ -108,12 +119,17 @@ void ABoss::Spawn() {
 	FScopeLock ScopeLock(&m_mutex);
 
 	//spawn another scarab if max capacity has not been reached
-	if (availablePos.Num() > 0) {
+	if (numScarabs < 2 && availablePos.Num() > 0) {
+		numScarabs++;
+
 		//generate random index in array
 		int randInt = FMath::RandRange(0, availablePos.Num() - 1);
 
 		//get position at specified index
 		int spawnPos = availablePos[randInt];
+
+		//set corresponding egg to hatch
+		eggs[spawnPos]->Hatch();
 
 		//initialize parameters to spawn scarab
 		FActorSpawnParameters params;
@@ -133,6 +149,8 @@ void ABoss::AddSpawnPoint(int pos) {
 	//lock this section so that array can be modified
 	FScopeLock ScopeLock(&m_mutex);
 
+	numScarabs--;
+
 	//add position to array of available positions
-	availablePos.AddUnique(pos);
+	//availablePos.AddUnique(pos);
 }

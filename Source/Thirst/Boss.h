@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Enemy.h"
+#include "Egg.h"
 #include "Components/BoxComponent.h"
 #include "Boss.generated.h"
 
@@ -58,6 +59,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 		TSubclassOf<class AEnemy> scarab;
 
+	//egg to spawn
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		TSubclassOf<class AEgg> egg;
+
 	//animation when boss is idle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* idleAnim;
@@ -75,5 +80,7 @@ private:
 	FTimerHandle spawnTimer;
 	UBoxComponent* attackBox;
 	TArray<int> availablePos;
+	TArray<AEgg*> eggs;
 	FCriticalSection m_mutex;
+	int numScarabs;
 };

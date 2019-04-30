@@ -19,7 +19,7 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void hatch();
+	void Hatch();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* beforeHatchAnim;

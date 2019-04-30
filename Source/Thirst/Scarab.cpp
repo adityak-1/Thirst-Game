@@ -15,6 +15,7 @@
 #include "Components/BoxComponent.h"
 #include "Frog.h"
 #include "Boss.h"
+#include "Egg.h"
 
  // Sets default values
 AScarab::AScarab() : AEnemy()
@@ -324,6 +325,9 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 				GetCharacterMovement()->StopMovementImmediately();
 				isPostBiting = true;
 			}
+		}
+		else if (OtherActor->IsA<AEgg>()) {
+			Born();
 		}
 
 		if (OtherActor == this) {
