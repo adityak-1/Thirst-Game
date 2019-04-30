@@ -35,6 +35,8 @@ public:
 	//function to handle scarab spawn
 	UFUNCTION()
 		void Spawn();
+	UFUNCTION()
+		void AddScarab(int pos);
 
 	UFUNCTION()
 		void AddSpawnPoint(int pos);
@@ -50,6 +52,10 @@ protected:
 	//time interval between scarab spawns
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float spawnInterval;
+
+	//delay between egg hatch and scarab spawn
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float hatchDelay;
 
 	//relative locations for scarab spawns
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
@@ -78,6 +84,8 @@ protected:
 private:
 	FTimerHandle intervalTimer;
 	FTimerHandle spawnTimer;
+	FTimerHandle eggTimer;
+	FTimerDelegate scarabFunc;
 	UBoxComponent* attackBox;
 	TArray<int> availablePos;
 	TArray<AEgg*> eggs;

@@ -8,6 +8,7 @@
 //https://answers.unrealengine.com/questions/264977/how-to-use-fpthreadscriticalsection-make-data-thre.html
 //https://wiki.unrealengine.com/String_Conversions:_FString_to_FName,_FString_to_Int32,_Float_to_FString
 //http://api.unrealengine.com/INT/API/Runtime/Core/Math/FMath/RandRange/index.html
+//https://answers.unrealengine.com/questions/165678/using-settimer-on-a-function-with-parameters.html
 
 #include "Boss.h"
 #include "TimerManager.h"
@@ -128,21 +129,18 @@ void ABoss::Spawn() {
 		//get position at specified index
 		int spawnPos = availablePos[randInt];
 
+		//remove selected position from array
+		availablePos.RemoveAt(randInt);
+
 		//set corresponding egg to hatch
 		if(eggs[spawnPos]->IsValidLowLevel())
 			eggs[spawnPos]->Hatch();
 
-		//initialize parameters to spawn scarab
-		FActorSpawnParameters params;
-		params.Owner = this;
-		params.Name = FName(*FString::FromInt(spawnPos));
+		scarabFunc.BindUFunction(this, FName("AddScarab"), spawnPos);
 
-		//remove selected position from array
-		availablePos.RemoveAt(randInt);
-
-		//spawn new scarab
-		GetWorld()->SpawnActor<AEnemy>(scarab, GetActorLocation() + scarabRelLocation[spawnPos],
-			GetActorRotation(), params)->SpawnDefaultController();
+		//spawn a scarab with delay due to egg hatch
+		GetWorld()->GetTimerManager().SetTimer(eggTimer,
+			scarabFunc, hatchDelay, false);
 	}
 }
 
@@ -154,4 +152,15 @@ void ABoss::AddSpawnPoint(int pos) {
 
 	//add position to array of available positions
 	//availablePos.AddUnique(pos);
+}
+
+void ABoss::AddScarab(int pos) {
+	//initialize parameters to spawn scarab
+	FActorSpawnParameters params;
+	params.Owner = this;
+	params.Name = FName(*FString::FromInt(pos));
+
+	//spawn new scarab
+	GetWorld()->SpawnActor<AEnemy>(scarab, GetActorLocation() + scarabRelLocation[pos],
+		GetActorRotation(), params)->SpawnDefaultController();
 }
