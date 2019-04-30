@@ -129,7 +129,8 @@ void ABoss::Spawn() {
 		int spawnPos = availablePos[randInt];
 
 		//set corresponding egg to hatch
-		eggs[spawnPos]->Hatch();
+		if(eggs[spawnPos]->IsValidLowLevel())
+			eggs[spawnPos]->Hatch();
 
 		//initialize parameters to spawn scarab
 		FActorSpawnParameters params;

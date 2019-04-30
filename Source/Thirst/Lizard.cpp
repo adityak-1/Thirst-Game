@@ -182,7 +182,8 @@ void ALizard::SpitFinish() {	//initialize parameters for projectile spawn
 		AProjectile* acidBall = GetWorld()->SpawnActor<AProjectile>(projectile, GetActorLocation(), GetActorRotation(), params);
 
 		//allow the projectile to move
-		acidBall->Start(this, isRight);
+		if(acidBall->IsValidLowLevel())
+			acidBall->Start(this, isRight);
 
 		//wait for some time, end animation
 		GetWorldTimerManager().SetTimer(resetTimer, this,
@@ -223,7 +224,8 @@ void ALizard::ThrowSpear() {
 		AProjectile* spear = GetWorld()->SpawnActor<AProjectile>(spearProjectile, GetActorLocation(), GetActorRotation(), params);
 
 		//allow the projectile to move
-		spear->Start(this, isRight);
+		if(spear->IsValidLowLevel())
+			spear->Start(this, isRight);
 
 		GetSprite()->SetFlipbook(endThrowAnim);
 		GetSprite()->Play();
