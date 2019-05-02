@@ -215,7 +215,6 @@ void AScarab::LiftUp() {
 }
 
 void AScarab::Hover() {
-
 	UPaperFlipbook* currAnim;
 	currAnim = hoverAnim;
 	if (GetSprite()->GetFlipbook() != currAnim) {
@@ -330,7 +329,7 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 			Born();
 		}
 
-		if (OtherActor == this) {
+		if (OtherActor != enemy) {
 			isRight = !isRight;
 		}
 	}
