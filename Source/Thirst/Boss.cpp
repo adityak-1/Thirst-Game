@@ -24,6 +24,7 @@ ABoss::ABoss() : AEnemy()
 	GetCharacterMovement()->GravityScale = 0;
 
 	numScarabs = 0;
+	isKilled = false;
 }
 
 // Called when the game starts or when spawned
@@ -67,19 +68,44 @@ void ABoss::BeginPlay()
 		&ABoss::Spawn, spawnInterval, true);
 }
 
+void ABoss::Death() {
+	//change hitpoints to avoid call death multi times
+	hitPoints = 1000;
+
+	//set isKilled to true
+	isKilled = true;
+
+	//change animation and walking method
+	GetCharacterMovement()->StopMovementImmediately();
+	GetSprite()->SetFlipbook(deathAnim);
+
+	//turn off attack hitbox
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
+		&ABoss::DeathHelper, deathDelay, false);
+}
+
+void ABoss::DeathHelper() {
+	this->Destroy();
+}
+
 void ABoss::Attack() {
-	//select thrust or claw
-	int randInt = FMath::RandRange(0, 1);
+	if (!isKilled) {
+		//select thrust or claw
+		int randInt = FMath::RandRange(0, 1);
 
-	//enable collision box
-	attackBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		//enable collision box
+		attackBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
-	//call selected attack function
-	if (randInt == 0) {
-		Thrust();
-	}
-	else {
-		Claw();
+		//call selected attack function
+		if (randInt == 0) {
+			Thrust();
+		}
+		else {
+			Claw();
+		}
 	}
 }
 
@@ -116,31 +142,33 @@ void ABoss::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* Oth
 }
 
 void ABoss::Spawn() {
-	//lock this section so that array can be modified
-	FScopeLock ScopeLock(&m_mutex);
+	if (!isKilled) {
+		//lock this section so that array can be modified
+		FScopeLock ScopeLock(&m_mutex);
 
-	//spawn another scarab if max capacity has not been reached
-	if (numScarabs < 2 && availablePos.Num() > 0) {
-		numScarabs++;
+		//spawn another scarab if max capacity has not been reached
+		if (numScarabs < 2 && availablePos.Num() > 0) {
+			numScarabs++;
 
-		//generate random index in array
-		int randInt = FMath::RandRange(0, availablePos.Num() - 1);
+			//generate random index in array
+			int randInt = FMath::RandRange(0, availablePos.Num() - 1);
 
-		//get position at specified index
-		int spawnPos = availablePos[randInt];
+			//get position at specified index
+			int spawnPos = availablePos[randInt];
 
-		//remove selected position from array
-		availablePos.RemoveAt(randInt);
+			//remove selected position from array
+			availablePos.RemoveAt(randInt);
 
-		//set corresponding egg to hatch
-		if(eggs[spawnPos]->IsValidLowLevel())
-			eggs[spawnPos]->Hatch();
+			//set corresponding egg to hatch
+			if (eggs[spawnPos]->IsValidLowLevel())
+				eggs[spawnPos]->Hatch();
 
-		scarabFunc.BindUFunction(this, FName("AddScarab"), spawnPos);
+			scarabFunc.BindUFunction(this, FName("AddScarab"), spawnPos);
 
-		//spawn a scarab with delay due to egg hatch
-		GetWorld()->GetTimerManager().SetTimer(eggTimer,
-			scarabFunc, hatchDelay, false);
+			//spawn a scarab with delay due to egg hatch
+			GetWorld()->GetTimerManager().SetTimer(eggTimer,
+				scarabFunc, hatchDelay, false);
+		}
 	}
 }
 
@@ -155,12 +183,14 @@ void ABoss::AddSpawnPoint(int pos) {
 }
 
 void ABoss::AddScarab(int pos) {
-	//initialize parameters to spawn scarab
-	FActorSpawnParameters params;
-	params.Owner = this;
-	params.Name = FName(*FString::FromInt(pos));
+	if (!isKilled) {
+		//initialize parameters to spawn scarab
+		FActorSpawnParameters params;
+		params.Owner = this;
+		params.Name = FName(*FString::FromInt(pos));
 
-	//spawn new scarab
-	GetWorld()->SpawnActor<AEnemy>(scarab, GetActorLocation() + scarabRelLocation[pos],
-		GetActorRotation(), params)->SpawnDefaultController();
+		//spawn new scarab
+		GetWorld()->SpawnActor<AEnemy>(scarab, GetActorLocation() + scarabRelLocation[pos],
+			GetActorRotation(), params)->SpawnDefaultController();
+	}
 }

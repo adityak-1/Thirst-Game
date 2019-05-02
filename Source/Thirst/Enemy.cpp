@@ -10,6 +10,7 @@
 #include "Scarab.h"
 #include "Snake.h"
 #include "Lizard.h"
+#include "Boss.h"
 #include "Components/AudioComponent.h"
 
 // Sets default values
@@ -43,7 +44,7 @@ void AEnemy::Tick(float DeltaTime)
 	//if hit points go to or below 0, destroy this actor
 	if (hitPoints <= 0) {
 		//check if enemy is a scarab
-		if(this->IsA<AScarab>()||this->IsA<ASnake>()||this->IsA<ALizard>())
+		if(this->IsA<AScarab>()||this->IsA<ASnake>()||this->IsA<ALizard>()||this->IsA<ABoss>())
 			Death();
 		else
 			this->Destroy();

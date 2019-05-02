@@ -19,6 +19,10 @@ class THIRST_API ABoss : public AEnemy
 public:
 	// Sets default values for this character's properties
 	ABoss();
+
+	void Death() override;
+
+	void DeathHelper();
 	
 	//functions to handle boss attacks
 	UFUNCTION()
@@ -57,6 +61,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float hatchDelay;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float deathDelay;
+
 	//relative locations for scarab spawns
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
 		TArray<FVector> scarabRelLocation;
@@ -81,14 +88,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* clawAnim;
 
+	//animation when boss is killed
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* deathAnim;
+
 private:
 	FTimerHandle intervalTimer;
 	FTimerHandle spawnTimer;
 	FTimerHandle eggTimer;
+	FTimerHandle deathDelayTimer;
 	FTimerDelegate scarabFunc;
 	UBoxComponent* attackBox;
 	TArray<int> availablePos;
 	TArray<AEgg*> eggs;
 	FCriticalSection m_mutex;
 	int numScarabs;
+	bool isKilled;
 };
