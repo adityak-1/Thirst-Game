@@ -66,6 +66,7 @@ AFrog::AFrog()
 	isShaded = false;
 	isWell = false;
 	isStun = false;
+	isKilled = false;
 }
 
 // Called when the game starts or when spawned
@@ -105,69 +106,77 @@ void AFrog::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (!isShaded && !isWell) {
-		currentWater -= tickWater;
-	}
+	if (!isKilled) {
+		if (!isShaded && !isWell) {
+			currentWater -= tickWater;
+		}
 
-	if (currentWater <= 0) {
-		currentWater = 0;
-		currentHealth -= tickHealth;
-	}
-	
-	if (currentHealth <= 0)
-		Die();
+		if (currentWater <= 0) {
+			currentWater = 0;
+			currentHealth -= tickHealth;
+		}
 
-	//get components of player velocity
-	float xVel = GetVelocity().X;
-	float zVel = GetVelocity().Z;
+		if (currentHealth <= 0)
+			DieHelper();
 
-	//compute rotation for player to face correct direction
-	float yawAngle = (xVel > 0.0f && !isBackstep) ? 0.0f :
-		((xVel < 0.0f && !isBackstep) ? 180.0f : GetControlRotation().Yaw);
+		//get components of player velocity
+		float xVel = GetVelocity().X;
+		float zVel = GetVelocity().Z;
 
-	//rotate player based on direction of motion
-	if (Controller != nullptr) {
-		Controller->SetControlRotation(FRotator(0.0f, yawAngle, 0.0f));
-	}
+		//compute rotation for player to face correct direction
+		float yawAngle = (xVel > 0.0f && !isBackstep) ? 0.0f :
+			((xVel < 0.0f && !isBackstep) ? 180.0f : GetControlRotation().Yaw);
 
-	//check whether player can dash again
-	if (GetCharacterMovement()->IsMovingOnGround()) {
-		dashAgain = true;
-	}
+		//rotate player based on direction of motion
+		if (Controller != nullptr) {
+			Controller->SetControlRotation(FRotator(0.0f, yawAngle, 0.0f));
+		}
 
-	//set next animation state
-	UPaperFlipbook* currAnim;
+		//check whether player can dash again
+		if (GetCharacterMovement()->IsMovingOnGround()) {
+			dashAgain = true;
+		}
 
-	//player is performing melee attack
-	if (isMelee) {
-		currAnim = meleeAnim;
+		//set next animation state
+		UPaperFlipbook* currAnim;
+
+		//player is performing melee attack
+		if (isMelee) {
+			currAnim = meleeAnim;
+		}
+		//player is performing ranged attack
+		else if (isRanged) {
+			currAnim = rangedAnim;
+		}
+		//player is performing dash
+		else if (isDash) {
+			currAnim = dashAnim;
+		}
+		//player is performing backstep
+		else if (isBackstep) {
+			currAnim = backstepAnim;
+		}
+		//player is in air
+		else if (!GetCharacterMovement()->IsMovingOnGround()) {
+			//can only do jump of fall
+			currAnim = (zVel >= 0) ? jumpAnim : fallAnim;
+		}
+		//player is on ground
+		else {
+			//can walk or stand idle
+			currAnim = (xVel != 0.0f) ? walkAnim : idleAnim;
+		}
+
+		//update player animation if incorrect
+		if (GetSprite()->GetFlipbook() != currAnim) {
+			GetSprite()->SetFlipbook(currAnim);
+		}
 	}
-	//player is performing ranged attack
-	else if (isRanged) {
-		currAnim = rangedAnim;
-	}
-	//player is performing dash
-	else if (isDash) {
-		currAnim = dashAnim;
-	}
-	//player is performing backstep
-	else if (isBackstep) {
-		currAnim = backstepAnim;
-	}
-	//player is in air
-	else if (!GetCharacterMovement()->IsMovingOnGround()) {
-		//can only do jump of fall
-		currAnim = (zVel >= 0) ? jumpAnim : fallAnim;
-	}
-	//player is on ground
 	else {
-		//can walk or stand idle
-		currAnim = (xVel != 0.0f) ? walkAnim : idleAnim;
-	}
-
-	//update player animation if incorrect
-	if (GetSprite()->GetFlipbook() != currAnim) {
-		GetSprite()->SetFlipbook(currAnim);
+		isStun = true;
+		if (GetSprite()->GetFlipbook() != deathAnim) {
+			GetSprite()->SetFlipbook(deathAnim);
+		}
 	}
 }
 
@@ -373,22 +382,24 @@ void AFrog::MeleeHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActo
 
 //called when frog is hit by an enemy
 void AFrog::Damage(float damageTaken, float disp) {
-	//update player health
-	SetCurrentHealth(currentHealth - damageTaken);
+	if (!isKilled) {
+		//update player health
+		SetCurrentHealth(currentHealth - damageTaken);
 
-	//recoil back when damage is taken
-	ResetMovement();
+		//recoil back when damage is taken
+		ResetMovement();
 
-	//set stun flag to true
-	isStun = true;
+		//set stun flag to true
+		isStun = true;
 
-	//update player rotation so that player backsteps away from enemy
-	if (Controller != nullptr) {
-		Controller->SetControlRotation(FRotator(0.0f, (disp >= 0 ? 0.0f : 180.0f), 0.0f));
+		//update player rotation so that player backsteps away from enemy
+		if (Controller != nullptr) {
+			Controller->SetControlRotation(FRotator(0.0f, (disp >= 0 ? 0.0f : 180.0f), 0.0f));
+		}
+
+		//backstep away from enemy
+		Backstep();
 	}
-
-	//backstep away from enemy
-	Backstep();
 }
 
 void AFrog::ResetMovement() {
@@ -438,7 +449,32 @@ void AFrog::AddWater(float amount) {
 }
 
 //called when health <= 0
-//TODO go to death screen --> respawn at last checkpoint
+void AFrog::DieHelper() {
+	currentHealth = maxHealth;
+	currentWater = maxWater;
+
+	//set it is killed, and disable conllision box
+	isDash = false;
+	dashAgain = false;
+	isMelee = false;
+	isRanged = false;
+	isShaded = false;
+	isWell = false;
+	isStun = true;
+	isKilled = true;
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	//play death animation
+	GetSprite()->SetFlipbook(deathAnim);
+
+	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
+		&AFrog::Die, deathDelay, false);
+}
+
+//called when respawn
 void AFrog::Die() {
 	//reMax health and water to avoid calling this function more than one time
 	currentHealth = maxHealth;
@@ -464,7 +500,7 @@ void AFrog::Die() {
 		&AFrog::respawn, respawnDelay, false);
 }
 
-//function called when player died and having lives
+//function called when player died
 void AFrog::respawn() {
 	GetCharacterMovement()->StopMovementImmediately();
 
@@ -481,4 +517,20 @@ void AFrog::respawn() {
 	//reset health and water back to maximum
 	currentHealth = maxHealth;
 	currentWater = maxWater;
+	isDash = false;
+	dashAgain = true;
+	isMelee = false;
+	isRanged = false;
+	isShaded = false;
+	isWell = false;
+	isStun = false;
+	isKilled = false;
+	
+	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
+	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	//set able for controller
+
 }

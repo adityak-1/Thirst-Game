@@ -90,6 +90,10 @@ public:
 	UFUNCTION()
 		void Die();
 
+	//function called when health reaches 0
+	UFUNCTION()
+		void DieHelper();
+
 	//function called when adding Water
 	UFUNCTION()
 		void AddWater(float amount);
@@ -97,6 +101,8 @@ public:
 	//function called when to respawn a new player
 	UFUNCTION()
 		void respawn();
+
+	bool isKilled;
 
 protected:
 	// Called when the game starts or when spawned
@@ -189,6 +195,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
 		float respawnDelay;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
+		float deathDelay;
+
 	//died screen
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> DiedWidget;
@@ -256,6 +265,10 @@ protected:
 	//animation when player is performing ranged attack
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* rangedAnim;
+	
+	//animation when player dead
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* deathAnim;
 
 	//sound when player is performing melee
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
@@ -273,5 +286,6 @@ private:
 	FTimerHandle respwanTimer;
 	AActor *checkPoint;
 	UUserWidget* displayWidget;
+	FTimerHandle deathDelayTimer;
 	UAudioComponent* audioComponent;
 };

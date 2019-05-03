@@ -11,6 +11,7 @@
 #include "Snake.h"
 #include "Lizard.h"
 #include "Boss.h"
+#include "Frog.h"
 #include "Components/AudioComponent.h"
 
 // Sets default values
@@ -40,6 +41,10 @@ void AEnemy::BeginPlay()
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
+	if (((AFrog*)enemy)->isKilled)
+		return;
 	
 	//if hit points go to or below 0, destroy this actor
 	if (hitPoints <= 0) {
