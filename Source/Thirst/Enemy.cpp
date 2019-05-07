@@ -13,6 +13,7 @@
 #include "Boss.h"
 #include "Frog.h"
 #include "Components/AudioComponent.h"
+#include "PaperFlipbookComponent.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -35,12 +36,23 @@ void AEnemy::BeginPlay()
 	//initialize audio component for enemy sound effects
 	audioComponent = Cast<UAudioComponent>(GetDefaultSubobjectByName(TEXT("Audio")));
 	audioComponent->bAutoActivate = false;
+
+	isHit = false;
 }
 
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (isHit) {
+		if (hitFrames < 5) {
+			hitFrames++;
+		}
+		else {
+			GetSprite()->SetSpriteColor(FLinearColor(FVector4(1, 1, 1, 1)));
+		}
+	}
 
 	//enemy = GetWorld()->GetFirstPlayerController()->GetPawn();
 	if (((AFrog*)enemy)->isKilled)
@@ -70,6 +82,10 @@ float AEnemy::GetPlayerDisp() {
 
 //called when an attack hits the enemy
 void AEnemy::Damage(int damageTaken) {
+	GetSprite()->SetSpriteColor(FLinearColor(FVector4(0.25, 0.25, 0.25, 1)));
+	hitFrames = 0;
+	isHit = true;
+	
 	//play hit sound
 	audioComponent->SetSound(hitSound);
 	audioComponent->Play();
