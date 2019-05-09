@@ -319,7 +319,7 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 	//check if player was hit
 	if (!isKilled) {
 		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
+			Cast<AFrog>(OtherActor)->Damage(20, GetPlayerDisp());
 			if (isBiting) {
 				GetCharacterMovement()->StopMovementImmediately();
 				isPostBiting = true;

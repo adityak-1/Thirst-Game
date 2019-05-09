@@ -100,6 +100,8 @@ void AFrog::BeginPlay()
 	currentHealth = maxHealth;
 	currentWater = maxWater;
 	checkPoint = NULL;
+	shadeCount = 0;
+	isShaded = true;
 }
 
 // Called every frame
@@ -428,24 +430,35 @@ void AFrog::InWell(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		SetCurrentWater(maxWater);
 		SetCurrentHealth(maxHealth);
 		checkPoint = OtherActor;
+		shadeCount += 1;
+		isShaded = true;
 	}
 }
 
 void AFrog::OutWell(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
 	if (OtherActor->IsA<AWell>()) {
 		isWell = false;
+		shadeCount -= 1;
+	}
+	if (shadeCount <= 0) {
+		isShaded = false;
 	}
 }
 
 void AFrog::InShade(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) {
 	if (OtherActor->IsA<AShade>()) {
+		shadeCount += 1;
 		isShaded = true;
 	}
 }
 
 void AFrog::OutShade(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
 	if (OtherActor->IsA<AShade>()) {
+		shadeCount -= 1;
+	}
+	if (shadeCount <= 0) {
 		isShaded = false;
+		shadeCount = 0;
 	}
 }
 

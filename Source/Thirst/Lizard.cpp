@@ -93,6 +93,10 @@ void ALizard::Death() {
 	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
 	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	//turn off body collisions
+	UBoxComponent* boundingBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Boundary")));
+	boundingBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
 		&ALizard::DeathHelper, 1.15, false);
 }
@@ -342,7 +346,7 @@ void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 	if (!isKilled) {
 		//check if player was hit
 		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
+			Cast<AFrog>(OtherActor)->Damage(20, GetPlayerDisp());
 
 			//disable timed ending of attack
 			GetWorldTimerManager().ClearTimer(resetTimer);

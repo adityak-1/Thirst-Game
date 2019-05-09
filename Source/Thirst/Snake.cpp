@@ -172,7 +172,7 @@ void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* Ot
 	if (!isKilled) {
 		//check if player was hit
 		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-			Cast<AFrog>(OtherActor)->Damage(5, GetPlayerDisp());
+			Cast<AFrog>(OtherActor)->Damage(20, GetPlayerDisp());
 		}
 
 		if (OtherActor != this) {

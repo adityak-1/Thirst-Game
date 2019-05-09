@@ -280,6 +280,7 @@ protected:
 
 private:
 	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded, isWell, isStun;
+	int shadeCount;
 
 	FTimerHandle movementTimer;
 	FTimerHandle attackTimer;
