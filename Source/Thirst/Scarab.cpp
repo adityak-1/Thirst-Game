@@ -246,7 +246,7 @@ bool AScarab::CanBite() {
 	float currZ = GetCharacterMovement()->GetActorLocation().Z;
 	float dispZ = currZ - enemy->GetActorLocation().Z;
 
-	return abs(dispX) <= biteDist && isRight == (dispX < 0) && abs(dispZ) <= biteHeight;
+	return abs(dispX) <= biteDist && isRight == (dispX < 0) && abs(dispZ) <= biteHeight && !(((AFrog*)enemy)->isKilled);
 }
 
 bool AScarab::CanSee() {

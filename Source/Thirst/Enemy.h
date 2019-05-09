@@ -52,5 +52,10 @@ protected:
 	//flag for if enemy is facing right
 	bool isRight;
 
+	bool isHit;
+
+	//counter to keep track of hit frames
+	int hitFrames;
+
 	UAudioComponent* audioComponent;
 };

@@ -132,7 +132,7 @@ bool ALizard::CanAttack() {
 	float disp = GetPlayerDisp();
 
 	//return whether lizard can perform attack
-	return !isAttack && abs(disp) <= visionDist && (isRight == (disp < 0));
+	return !isAttack && abs(disp) <= visionDist && (isRight == (disp < 0)) && !(((AFrog*)enemy)->isKilled);
 }
 
 void ALizard::Attack() {

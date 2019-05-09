@@ -134,7 +134,7 @@ bool ASnake::CanLunge() {
 
 	//return whether snake can perform lunge
 	return !beginLunge && !inLunge && !endLunge && GetCharacterMovement()->IsMovingOnGround() 
-		&& abs(disp) <= visionDist && (isRight == (disp < 0));
+		&& abs(disp) <= visionDist && (isRight == (disp < 0)) && !(((AFrog*)enemy)->isKilled);
 }
 
 void ASnake::Lunge() {

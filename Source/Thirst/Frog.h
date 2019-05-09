@@ -102,7 +102,7 @@ public:
 	UFUNCTION()
 		void respawn();
 
-	bool isKilled;
+	bool isKilled, bossKilled;
 
 protected:
 	// Called when the game starts or when spawned
