@@ -75,6 +75,10 @@ void ABoss::Death() {
 	//set isKilled to true
 	isKilled = true;
 
+	//set player is stun and killed
+	((AFrog*)enemy)->isKilled = true;
+	((AFrog*)enemy)->bossKilled = true;
+
 	//change animation and walking method
 	GetCharacterMovement()->StopMovementImmediately();
 	GetSprite()->SetFlipbook(deathAnim);
@@ -88,7 +92,18 @@ void ABoss::Death() {
 }
 
 void ABoss::DeathHelper() {
-	this->Destroy();
+	this->TeleportTo(FVector(GetActorLocation().X + finalWaterAdjustment, GetActorLocation().Y, GetActorLocation().Z), FRotator(0.0f, 0.0f, 0.0f), false, false);
+	GetCharacterMovement()->StopMovementImmediately();
+	GetSprite()->SetFlipbook(finalWaterAnim);
+
+	//this->Destroy();
+	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
+		&ABoss::DeathHelperHelper, finalWaterDelay, false);
+}
+
+void ABoss::DeathHelperHelper() {
+	GetSprite()->SetLooping(true);
+	GetSprite()->SetFlipbook(finalWaterLoopAnim);
 }
 
 void ABoss::Attack() {
@@ -133,11 +148,13 @@ void ABoss::ResetAttack() {
 
 void ABoss::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	//check if player was hit
-	if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-		//disable attack collision box
-		attackBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (!isKilled) {
+		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
+			//disable attack collision box
+			attackBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		Cast<AFrog>(OtherActor)->Damage(20, 1.0f);
+			Cast<AFrog>(OtherActor)->Damage(20, 1.0f);
+		}
 	}
 }
 

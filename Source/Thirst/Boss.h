@@ -23,6 +23,8 @@ public:
 	void Death() override;
 
 	void DeathHelper();
+
+	void DeathHelperHelper();
 	
 	//functions to handle boss attacks
 	UFUNCTION()
@@ -64,6 +66,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float deathDelay;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float finalWaterAdjustment;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float finalWaterDelay;
+
 	//relative locations for scarab spawns
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
 		TArray<FVector> scarabRelLocation;
@@ -91,6 +99,13 @@ protected:
 	//animation when boss is killed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 		class UPaperFlipbook* deathAnim;
+
+	//animation for the final water
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* finalWaterAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+		class UPaperFlipbook* finalWaterLoopAnim;
 
 private:
 	FTimerHandle intervalTimer;

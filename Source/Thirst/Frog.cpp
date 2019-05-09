@@ -67,6 +67,7 @@ AFrog::AFrog()
 	isWell = false;
 	isStun = false;
 	isKilled = false;
+	bossKilled = false;
 }
 
 // Called when the game starts or when spawned
@@ -174,8 +175,15 @@ void AFrog::Tick(float DeltaTime)
 	}
 	else {
 		isStun = true;
-		if (GetSprite()->GetFlipbook() != deathAnim) {
-			GetSprite()->SetFlipbook(deathAnim);
+		if (!bossKilled) {
+			if (GetSprite()->GetFlipbook() != deathAnim) {
+				GetSprite()->SetFlipbook(deathAnim);
+			}
+		}
+		else {
+			if (GetSprite()->GetFlipbook() != idleAnim) {
+				GetSprite()->SetFlipbook(idleAnim);
+			}
 		}
 	}
 }
