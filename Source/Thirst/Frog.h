@@ -98,10 +98,6 @@ public:
 	UFUNCTION()
 		void AddWater(float amount);
 
-	//function called when to respawn a new player
-	UFUNCTION()
-		void respawn();
-
 	bool isKilled, bossKilled;
 
 protected:

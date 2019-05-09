@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/BoxComponent.h"
+#include "CustomGameInstance.h"
 
 // Sets default values
 AInfoBoxManager::AInfoBoxManager()
@@ -53,7 +54,9 @@ void AInfoBoxManager::BeginPlay()
 	}
 
 	//display initial spawn info box
-	CreateWidget<UUserWidget>(GetWorld(), infoBoxes[0])->AddToViewport();
+	if (Cast<UCustomGameInstance>(GetGameInstance())->showStartBox) {
+		CreateWidget<UUserWidget>(GetWorld(), infoBoxes[0])->AddToViewport();
+	}
 }
 
 void AInfoBoxManager::DisplayBox(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {

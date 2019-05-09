@@ -33,6 +33,8 @@
 #include "Shade.h"
 #include "Runtime/UMG/Public/Blueprint/UserWidget.h"
 #include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "CustomGameInstance.h"
 
 // Sets default values
 AFrog::AFrog()
@@ -96,6 +98,20 @@ void AFrog::BeginPlay()
 	//initialize audio component for player sound effects
 	audioComponent = Cast<UAudioComponent>(GetDefaultSubobjectByName(TEXT("Audio")));
 	audioComponent->bAutoActivate = false;
+
+	FVector spawnLocation = Cast<UCustomGameInstance>(GetGameInstance())->spawnLocation;
+
+	//set player position
+	if (spawnLocation == FVector::ZeroVector) {
+		//restart at PlayerStart
+		GetWorld()->GetFirstPlayerController()->ClientSetLocation(GetWorld()->GetFirstPlayerController()->GetSpawnLocation(), FRotator(0.0f, 0.0f, 0.0f));
+	}
+	else {
+		//restart at last check point
+		GetWorld()->GetFirstPlayerController()->ClientSetLocation(spawnLocation, FRotator(0.0f, 0.0f, 0.0f));
+	}
+	
+	EnableInput(GetWorld()->GetFirstPlayerController());
 
 	currentHealth = maxHealth;
 	currentWater = maxWater;
@@ -429,7 +445,8 @@ void AFrog::InWell(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		isWell = true;
 		SetCurrentWater(maxWater);
 		SetCurrentHealth(maxHealth);
-		checkPoint = OtherActor;
+		Cast<UCustomGameInstance>(GetGameInstance())->spawnLocation = OtherActor->GetActorLocation();
+		//checkPoint = OtherActor;
 		shadeCount += 1;
 		isShaded = true;
 	}
@@ -486,6 +503,8 @@ void AFrog::DieHelper() {
 		collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
 		collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+		DisableInput(GetWorld()->GetFirstPlayerController());
+
 		//play death animation
 		GetSprite()->SetFlipbook(deathAnim);
 
@@ -496,58 +515,7 @@ void AFrog::DieHelper() {
 
 //called when respawn
 void AFrog::Die() {
-
-	//death screen
-	if (DiedWidget) // Check if the Asset is assigned in the blueprint.
-	{
-		// Create the widget and store it.
-		displayWidget = CreateWidget<UUserWidget>(GetWorld(), DiedWidget);
-
-		// now you can use the widget directly since you have a referance for it.
-		// Extra check to  make sure the pointer holds the widget.
-		if (displayWidget)
-		{
-			//let add it to the view port
-			displayWidget->AddToViewport();
-		}
-	}
-
-	//set timer to call respawn
-	GetWorld()->GetTimerManager().SetTimer(respwanTimer, this,
-		&AFrog::respawn, respawnDelay, false);
-}
-
-//function called when player died
-void AFrog::respawn() {
-	GetCharacterMovement()->StopMovementImmediately();
-
-	//restart game
-	if (checkPoint == NULL) {
-		//restart at PlayerStart
-		GetWorld()->GetFirstPlayerController()->ClientSetLocation(GetWorld()->GetFirstPlayerController()->GetSpawnLocation(), FRotator(0.0f, 0.0f, 0.0f));
-	}
-	else {
-		//restart at last check point
-		GetWorld()->GetFirstPlayerController()->ClientSetLocation(checkPoint->GetActorLocation(), FRotator(0.0f, 0.0f, 0.0f));
-	}
-
-	//reset health and water back to maximum
-	currentHealth = maxHealth;
-	currentWater = maxWater;
-	isDash = false;
-	dashAgain = true;
-	isMelee = false;
-	isRanged = false;
-	isShaded = false;
-	isWell = false;
-	isStun = false;
-	isKilled = false;
-	
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
-	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
-	collisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-
-	//set able for controller
-
+	//reload level
+	Cast<UCustomGameInstance>(GetGameInstance())->showStartBox = false;
+	UGameplayStatics::OpenLevel(GetWorld(), "Oasis");
 }
