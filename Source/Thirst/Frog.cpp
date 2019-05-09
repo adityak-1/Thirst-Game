@@ -458,35 +458,31 @@ void AFrog::AddWater(float amount) {
 
 //called when health <= 0
 void AFrog::DieHelper() {
-	currentHealth = maxHealth;
-	currentWater = maxWater;
+	if (!isKilled) {
+		//set it is killed, and disable conllision box
+		isDash = false;
+		dashAgain = false;
+		isMelee = false;
+		isRanged = false;
+		isShaded = false;
+		isWell = false;
+		isStun = true;
+		isKilled = true;
+		UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
+		collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
+		collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	//set it is killed, and disable conllision box
-	isDash = false;
-	dashAgain = false;
-	isMelee = false;
-	isRanged = false;
-	isShaded = false;
-	isWell = false;
-	isStun = true;
-	isKilled = true;
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
-	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
-	collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//play death animation
+		GetSprite()->SetFlipbook(deathAnim);
 
-	//play death animation
-	GetSprite()->SetFlipbook(deathAnim);
-
-	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
-		&AFrog::Die, deathDelay, false);
+		GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
+			&AFrog::Die, deathDelay, false);
+	}
 }
 
 //called when respawn
 void AFrog::Die() {
-	//reMax health and water to avoid calling this function more than one time
-	currentHealth = maxHealth;
-	currentWater = maxWater;
 
 	//death screen
 	if (DiedWidget) // Check if the Asset is assigned in the blueprint.
