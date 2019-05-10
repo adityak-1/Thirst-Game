@@ -423,9 +423,23 @@ void AFrog::Damage(float damageTaken, float disp) {
 			Controller->SetControlRotation(FRotator(0.0f, (disp >= 0 ? 0.0f : 180.0f), 0.0f));
 		}
 
+		UCapsuleComponent* collision = Cast<UCapsuleComponent>(GetDefaultSubobjectByName(TEXT("CollisionCylinder")));
+		collision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+		collision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+
 		//backstep away from enemy
 		Backstep();
+
+		GetWorld()->GetTimerManager().SetTimer(IFrameTimer, this,
+			&AFrog::IFrames, IFrameDelay, false);
 	}
+}
+
+//reset collisions after knockback from being hit
+void AFrog::IFrames() {
+	UCapsuleComponent* collision = Cast<UCapsuleComponent>(GetDefaultSubobjectByName(TEXT("CollisionCylinder")));
+	collision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	collision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 }
 
 void AFrog::ResetMovement() {

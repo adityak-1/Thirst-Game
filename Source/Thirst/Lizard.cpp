@@ -346,7 +346,7 @@ void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 	if (!isKilled) {
 		//check if player was hit
 		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
-			Cast<AFrog>(OtherActor)->Damage(20, GetPlayerDisp());
+			Cast<AFrog>(OtherActor)->Damage(15, GetPlayerDisp());
 
 			//disable timed ending of attack
 			GetWorldTimerManager().ClearTimer(resetTimer);

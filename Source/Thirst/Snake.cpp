@@ -37,8 +37,8 @@ void ASnake::BeginPlay()
 	Super::BeginPlay();
 
 	//get the collision box on the snake
-	UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
-	collisionBox->OnComponentBeginOverlap.AddDynamic(this, &ASnake::Collide);
+	UBoxComponent* collision = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("Collision")));
+	collision->OnComponentBeginOverlap.AddDynamic(this, &ASnake::Collide);
 }
 
 // Called every frame
@@ -173,19 +173,22 @@ void ASnake::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* Ot
 		//check if player was hit
 		if (OtherActor == enemy && OtherComp->GetName() == "CollisionCylinder") {
 			Cast<AFrog>(OtherActor)->Damage(20, GetPlayerDisp());
+			if (beginLunge) {
+				StopLunge();
+			}
 		}
 
 		if (OtherActor != this) {
 			//check whether snake is lunging
-			if (beginLunge) {
-				//allow snake to recoil
-				StopLunge();
-			}
+//			if (beginLunge) {
+//				//allow snake to recoil
+//				StopLunge();
+//			}
 			//snake is not lunging
-			else {
+//			else {
 				//flip direction of snake
 				isRight = !isRight;
-			}
+//			}
 		}
 	}
 

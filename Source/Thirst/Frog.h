@@ -98,6 +98,10 @@ public:
 	UFUNCTION()
 		void AddWater(float amount);
 
+	//function to reset collisions after knockback from being hit
+	UFUNCTION()
+		void IFrames();
+
 	bool isKilled, bossKilled;
 
 protected:
@@ -163,6 +167,10 @@ protected:
 	//duration of ranged animation (in seconds)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float rangedEndlag;
+
+	//duration of invincibility frames after damage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float IFrameDelay;
 
 	//max health
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HUD")
@@ -281,6 +289,7 @@ private:
 	FTimerHandle movementTimer;
 	FTimerHandle attackTimer;
 	FTimerHandle respwanTimer;
+	FTimerHandle IFrameTimer;
 	AActor *checkPoint;
 	UUserWidget* displayWidget;
 	FTimerHandle deathDelayTimer;
