@@ -77,6 +77,8 @@ void AFrog::BeginPlay()
 {
 	Super::BeginPlay();
 
+	shadeCount = 1;
+
 	//Delegate for handling Melee hits
 	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFrog::MeleeHit);
@@ -116,8 +118,9 @@ void AFrog::BeginPlay()
 	currentHealth = maxHealth;
 	currentWater = maxWater;
 	checkPoint = NULL;
-	shadeCount = 0;
 	isShaded = true;
+	isFirstFrame = true;
+	Controller->SetControlRotation(FRotator(0.0f, 180.0f, 0.0f));
 }
 
 // Called every frame
@@ -125,6 +128,13 @@ void AFrog::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+	//update overlaps to set shadeCount correctly on spawn
+	if (isFirstFrame) {
+		UBoxComponent* ShadeBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
+		ShadeBox->UpdateOverlaps();
+		isFirstFrame = false;
+	}
+
 	if (!isKilled) {
 		if (!isShaded && !isWell) {
 			currentWater -= tickWater;
@@ -473,6 +483,7 @@ void AFrog::OutWell(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor
 	}
 	if (shadeCount <= 0) {
 		isShaded = false;
+		shadeCount = 0;
 	}
 }
 
@@ -529,6 +540,8 @@ void AFrog::DieHelper() {
 
 //called when respawn
 void AFrog::Die() {
+	isFirstFrame = true;
+
 	//reload level
 	Cast<UCustomGameInstance>(GetGameInstance())->showStartBox = false;
 	UGameplayStatics::OpenLevel(GetWorld(), "Oasis");

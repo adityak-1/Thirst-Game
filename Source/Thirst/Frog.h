@@ -283,7 +283,7 @@ protected:
 		class USoundBase* rangedSound;
 
 private:
-	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded, isWell, isStun;
+	bool isDash, dashAgain, isBackstep, isMelee, isRanged, isShaded, isWell, isStun, isFirstFrame;
 	int shadeCount;
 
 	FTimerHandle movementTimer;
