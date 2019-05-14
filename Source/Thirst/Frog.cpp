@@ -533,7 +533,10 @@ void AFrog::DieHelper() {
 		DisableInput(GetWorld()->GetFirstPlayerController());
 
 		//play death animation
+		GetSprite()->SetLooping(false);
 		GetSprite()->SetFlipbook(deathAnim);
+
+		Cast<UCustomGameInstance>(GetGameInstance())->playerDied = true;
 
 		GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
 			&AFrog::Die, deathDelay, false);

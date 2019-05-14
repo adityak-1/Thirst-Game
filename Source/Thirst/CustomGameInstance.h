@@ -25,4 +25,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Reset")
 		bool gameDone;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Reset")
+		bool playerDied;
 };

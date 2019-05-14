@@ -7,4 +7,5 @@ UCustomGameInstance::UCustomGameInstance(const FObjectInitializer& ObjectInitial
 	spawnLocation = FVector::ZeroVector;
 	showStartBox = true;
 	gameDone = false;
+	playerDied = false;
 }
