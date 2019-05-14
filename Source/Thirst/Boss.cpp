@@ -17,6 +17,7 @@
 #include "Runtime/UMG/Public/Blueprint/UserWidget.h"
 #include "Frog.h"
 #include "Engine.h"
+#include "CustomGameInstance.h"
 
 // Sets default values
 ABoss::ABoss() : AEnemy()
@@ -105,6 +106,9 @@ void ABoss::DeathHelper() {
 void ABoss::DeathHelperHelper() {
 	GetSprite()->SetLooping(true);
 	GetSprite()->SetFlipbook(finalWaterLoopAnim);
+
+	//set game done flag to start fade out
+	Cast<UCustomGameInstance>(GetGameInstance())->gameDone = true;
 
 	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
 		&ABoss::Won, wonDelay, false);

@@ -22,4 +22,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Reset")
 		bool showStartBox;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Reset")
+		bool gameDone;
 };
