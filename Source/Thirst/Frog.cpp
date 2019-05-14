@@ -77,7 +77,7 @@ void AFrog::BeginPlay()
 {
 	Super::BeginPlay();
 
-	shadeCount = 1;
+	shadeCount = 3;
 
 	//Delegate for handling Melee hits
 	UBoxComponent* CollisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("MeleeCollision")));
@@ -128,12 +128,13 @@ void AFrog::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+	/* DIDN'T WORK
 	//update overlaps to set shadeCount correctly on spawn
 	if (isFirstFrame) {
 		UBoxComponent* ShadeBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
 		ShadeBox->UpdateOverlaps();
 		isFirstFrame = false;
-	}
+	}*/
 
 	if (!isKilled) {
 		if (!isShaded && !isWell) {
@@ -523,6 +524,7 @@ void AFrog::DieHelper() {
 		isWell = false;
 		isStun = true;
 		isKilled = true;
+		shadeCount = 3;
 		UBoxComponent* collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("ShadeCollision")));
 		collisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		collisionBox = Cast<UBoxComponent>(GetDefaultSubobjectByName(TEXT("WellCollision")));
