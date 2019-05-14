@@ -25,6 +25,8 @@ public:
 	void DeathHelper();
 
 	void DeathHelperHelper();
+
+	void Won();
 	
 	//functions to handle boss attacks
 	UFUNCTION()
@@ -71,6 +73,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float finalWaterDelay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float wonDelay;
 
 	//relative locations for scarab spawns
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")

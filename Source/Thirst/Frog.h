@@ -104,6 +104,10 @@ public:
 
 	bool isKilled, bossKilled;
 
+	//Won screen (killed the boss)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> WonWidget;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -209,10 +213,6 @@ protected:
 	//game over screen
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> GameOverWidget;
-
-	//Won screen (killed the boss)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-		TSubclassOf<class UUserWidget> WonWidget;
 
 	//water cost for melee
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")

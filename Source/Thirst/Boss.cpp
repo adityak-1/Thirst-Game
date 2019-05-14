@@ -14,6 +14,7 @@
 #include "TimerManager.h"
 #include "PaperFlipbookComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Runtime/UMG/Public/Blueprint/UserWidget.h"
 #include "Frog.h"
 #include "Engine.h"
 
@@ -104,6 +105,25 @@ void ABoss::DeathHelper() {
 void ABoss::DeathHelperHelper() {
 	GetSprite()->SetLooping(true);
 	GetSprite()->SetFlipbook(finalWaterLoopAnim);
+
+	GetWorld()->GetTimerManager().SetTimer(deathDelayTimer, this,
+		&ABoss::Won, wonDelay, false);
+}
+
+void ABoss::Won() {
+	if (((AFrog *)enemy)->WonWidget) // Check if the Asset is assigned in the blueprint.
+	{
+		// Create the widget and store it.
+		UUserWidget* displayWidget = CreateWidget<UUserWidget>(GetWorld(), ((AFrog *)enemy)->WonWidget);
+
+		// now you can use the widget directly since you have a referance for it.
+		// Extra check to  make sure the pointer holds the widget.
+		if (displayWidget)
+		{
+			//let add it to the view port
+			displayWidget->AddToViewport();
+		}
+	}
 }
 
 void ABoss::Attack() {
