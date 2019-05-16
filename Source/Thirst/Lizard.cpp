@@ -355,7 +355,7 @@ void ALizard::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 		}
 		else if (OtherActor != this && !OtherActor->IsA<AProjectile>()) {
 			//flip direction of lizard
-			isRight = !isRight;
+			//isRight = !isRight;
 		}
 	}
 }
