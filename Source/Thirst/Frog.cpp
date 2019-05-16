@@ -213,6 +213,9 @@ void AFrog::Tick(float DeltaTime)
 			if (GetSprite()->GetFlipbook() != idleAnim) {
 				GetSprite()->SetFlipbook(idleAnim);
 			}
+
+			//disable player movement
+			DisableInput(GetWorld()->GetFirstPlayerController());
 		}
 	}
 }
