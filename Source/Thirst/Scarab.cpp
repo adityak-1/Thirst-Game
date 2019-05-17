@@ -279,12 +279,12 @@ void AScarab::Bite() {
 		GetSprite()->SetFlipbook(currAnim);
 	}
 
-	if (GetCharacterMovement()->GetActorLocation().Z - targetZ < biteAdjustment) {
+	if (abs(GetCharacterMovement()->GetActorLocation().Z - targetZ) < biteAdjustment) {
 		GetCharacterMovement()->StopMovementImmediately();
 		isPostBiting = true;
 	}
 
-	if (abs(GetCharacterMovement()->GetActorLocation().Z - targetX) < 10) {
+	if (abs(GetCharacterMovement()->GetActorLocation().X - targetX) < 10) {
 		GetCharacterMovement()->StopMovementImmediately();
 		isPostBiting = true;
 	}
@@ -325,10 +325,6 @@ void AScarab::Collide(class UPrimitiveComponent* OverlappedComp, class AActor* O
 				isPostBiting = true;
 			}
 		}
-		else if (OtherActor->IsA<AEgg>()) {
-			Born();
-		}
-
 		if (OtherActor != enemy) {
 			isRight = !isRight;
 		}
